@@ -203,6 +203,7 @@ const UploadPage = () => {
                 actionLabel={deletingId === design.id ? 'Deleting…' : 'Delete'}
                 onAction={() => handleDelete(design.id, design.storage_path)}
                 disabled={deletingId === design.id}
+                actionTone="delete"
               />
             ))}
           </div>

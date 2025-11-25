@@ -465,6 +465,72 @@ input::file-selector-button {
   padding: 0.55rem 1.2rem 0.55rem calc(var(--knob-size) + 1.2rem);
 }
 
+.delete-button {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(248, 113, 113, 0.12);
+  color: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: width 0.35s cubic-bezier(0.51, 0.026, 0.368, 1.016),
+    border-radius 0.35s cubic-bezier(0.51, 0.026, 0.368, 1.016),
+    background 0.35s ease;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.delete-button__icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  transition: transform 0.35s cubic-bezier(0.51, 0.026, 0.368, 1.016);
+}
+
+.delete-button__icon svg path {
+  fill: currentColor;
+}
+
+.delete-button__label {
+  position: absolute;
+  left: 64px;
+  opacity: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(-10px);
+  white-space: nowrap;
+}
+
+.delete-button:hover,
+.delete-button:focus-visible {
+  width: 150px;
+  border-radius: 52px;
+  background: #ef4444;
+}
+
+.delete-button:hover .delete-button__icon,
+.delete-button:focus-visible .delete-button__icon {
+  transform: translateY(6px);
+}
+
+.delete-button:hover .delete-button__label,
+.delete-button:focus-visible .delete-button__label {
+  opacity: 1;
+  transform: translateY(6px);
+}
+
+.delete-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  width: 52px;
+}
+
 .scramble-button {
   position: relative;
   overflow: hidden;
