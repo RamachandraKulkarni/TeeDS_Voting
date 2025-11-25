@@ -14,7 +14,7 @@ const Header = () => {
     <header className="card" style={{ marginBottom: '1.5rem' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>TEE Design Showcase</strong>
+          <strong>TEEDS Design Showcase</strong>
           {session ? (
             <small>{session.user.email}</small>
           ) : (

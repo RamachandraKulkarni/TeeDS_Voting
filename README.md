@@ -1,11 +1,11 @@
-# ASU Design Voting Platform
+# TEEDS Design Voting Platform
 
-Full-stack Supabase + Vite starter for the Tee Design School showcase. The frontend ships as static assets (GitHub Pages ready) while Supabase covers Auth, Postgres, Storage, and Edge Functions.
+Full-stack Supabase + Vite starter for the TEEDS Design School showcase. The frontend ships as static assets (GitHub Pages ready) while Supabase covers Auth, Postgres, Storage, and Edge Functions.
 
 ## Features
 
 - OTP login restricted to `@asu.edu` addresses via Supabase Edge Functions + SMTP
-- Designers can upload up to two designs per modality (online & in-person) straight into the `designs` bucket
+- Designers can upload up to two designs total, locked to a single modality (online or in-person) straight into the `designs` bucket
 - Anonymous voting gallery with configurable per-modality vote limits enforced by a Postgres RPC
 - Admin-only analytics dashboard backed by another Edge Function and Chart.js visualizations
 - Simple React Router app with protected routes and a lightweight localStorage-backed session context
@@ -31,6 +31,8 @@ Full-stack Supabase + Vite starter for the Tee Design School showcase. The front
    ```bash
    supabase functions deploy request-otp
    supabase functions deploy verify-otp
+   supabase functions deploy record-design
+   supabase functions deploy delete-design
    supabase functions deploy admin-analytics
    ```
 

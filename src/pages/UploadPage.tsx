@@ -22,11 +22,16 @@ const UploadPage = () => {
   const [isUploading, setIsUploading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [designs, setDesigns] = useState<DesignRow[]>([])
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const limitReached = useMemo(() => {
-    const count = designs.filter((design) => design.modality === selectedModality).length
-    return count >= 2
-  }, [designs, selectedModality])
+  const limitReached = designs.length >= 2
+
+  const lockedModality = useMemo(() => (designs.length > 0 ? designs[0].modality : null), [designs])
+  useEffect(() => {
+    if (lockedModality && selectedModality !== lockedModality) {
+      setSelectedModality(lockedModality)
+    }
+  }, [lockedModality, selectedModality])
 
   const fetchDesigns = useCallback(async () => {
     if (!session) return
@@ -47,6 +52,35 @@ const UploadPage = () => {
   useEffect(() => {
     fetchDesigns()
   }, [fetchDesigns])
+
+  const handleDelete = async (designId: string, storagePath: string) => {
+    if (!session) return
+    const confirmed = typeof window === 'undefined' ? true : window.confirm('Delete this upload? The file will be removed permanently.')
+    if (!confirmed) return
+    setMessage(null)
+    setDeletingId(designId)
+    try {
+      const response = await invokeEdgeFunction<{ ok: boolean; message?: string }>(
+        'delete-design',
+        {
+          designId,
+          submitterId: session.user.id,
+          storagePath,
+        },
+      )
+
+      if (!response.ok) {
+        throw new Error(response.message ?? 'Unable to delete design')
+      }
+
+      setMessage('Design deleted')
+      fetchDesigns()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Delete failed')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -108,11 +142,18 @@ const UploadPage = () => {
       <div className="card">
         <h2>Upload designs</h2>
         <p>Each modality allows two uploads per designer. Files go straight into the Supabase storage bucket named <code>designs</code>.</p>
+        {lockedModality && (
+          <p className="notice">Your uploads are locked to <strong>{MODALITIES.find((m) => m.value === lockedModality)?.label ?? lockedModality}</strong>. Delete existing designs to switch modalities.</p>
+        )}
         {message && <p className={`notice ${message.toLowerCase().includes('fail') ? 'error' : ''}`}>{message}</p>}
         <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <label>
             Modality
-            <select value={selectedModality} onChange={(event) => setSelectedModality(event.target.value)}>
+            <select
+              value={selectedModality}
+              onChange={(event) => setSelectedModality(event.target.value)}
+              disabled={Boolean(lockedModality)}
+            >
               {MODALITIES.map((modality) => (
                 <option key={modality.value} value={modality.value}>
                   {modality.label}
@@ -142,6 +183,9 @@ const UploadPage = () => {
                 title={design.filename}
                 meta={design.modality}
                 imageUrl={getDesignPublicUrl(design.storage_path)}
+                actionLabel="Delete"
+                onAction={() => handleDelete(design.id, design.storage_path)}
+                disabled={deletingId === design.id}
               />
             ))}
           </div>

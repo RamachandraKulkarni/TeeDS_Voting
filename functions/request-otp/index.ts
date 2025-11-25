@@ -4,7 +4,7 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const OTP_SALT = Deno.env.get('OTP_SALT') ?? SERVICE_ROLE_KEY;
 const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') ?? '';
 const SENDGRID_SENDER_EMAIL = Deno.env.get('SENDGRID_SENDER_EMAIL') ?? '';
-const SENDGRID_SENDER_NAME = Deno.env.get('SENDGRID_SENDER_NAME') ?? 'TEE Design Voting';
+const SENDGRID_SENDER_NAME = Deno.env.get('SENDGRID_SENDER_NAME') ?? 'TEEDS Design Voting';
 const SENDGRID_API_URL = 'https://api.sendgrid.com/v3/mail/send';
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: {
@@ -114,7 +114,7 @@ async function sendOtpEmail(recipient: string, otp: string) {
               email: recipient
             }
           ],
-          subject: 'Your TEE Design Voting OTP'
+          subject: 'Your TEEDS Design Voting OTP'
         }
       ],
       from: {

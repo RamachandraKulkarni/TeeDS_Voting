@@ -112,6 +112,7 @@ drop policy if exists designs_read on public.designs;
 drop policy if exists designs_insert on public.designs;
 drop policy if exists designs_insert_service_role on public.designs;
 drop policy if exists designs_update on public.designs;
+drop policy if exists designs_delete on public.designs;
 drop policy if exists votes_read on public.votes;
 drop policy if exists votes_insert on public.votes;
 
@@ -129,6 +130,10 @@ create policy designs_update on public.designs
   for update to authenticated
   using (auth.uid() = submitter_id)
   with check (auth.uid() = submitter_id);
+
+create policy designs_delete on public.designs
+  for delete to authenticated
+  using (auth.uid() = submitter_id);
 
 create policy votes_read on public.votes for select using (true);
 
