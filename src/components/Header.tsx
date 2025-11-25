@@ -21,13 +21,20 @@ const Header = () => {
   return (
     <header className="header-panel fade-in">
       <div className="header-meta">
-        <div>
-          <p className="eyebrow">Honest poll · TEEDS 2025</p>
-          <h1 className="headline">Design stories with honest votes.</h1>
-          <p className="header-summary">
-            Upload concepts, review peers, and keep tabs on both modalities in a single sleek dashboard.
-          </p>
-        </div>
+        <p className="eyebrow">Honest poll · TEEDS 2025</p>
+        <h1 className="headline">Design stories with honest votes.</h1>
+        <p className="header-summary">
+          Upload concepts, review peers, and keep tabs on both modalities in a single sleek dashboard.
+        </p>
+      </div>
+      <div className="header-bar">
+        <nav className="header-nav">
+          {NAV_LINKS.map((link) => (
+            <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
         <div className="header-actions">
           <span className="user-chip">{session ? session.user.email : 'Signed out guest'}</span>
           {session ? (
@@ -41,13 +48,6 @@ const Header = () => {
           )}
         </div>
       </div>
-      <nav className="header-nav">
-        {NAV_LINKS.map((link) => (
-          <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
     </header>
   )
 }

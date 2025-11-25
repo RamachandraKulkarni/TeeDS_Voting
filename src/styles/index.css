@@ -89,10 +89,8 @@ a {
 
 .header-meta {
   display: flex;
-  justify-content: space-between;
-  gap: 1.5rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .eyebrow {
@@ -122,11 +120,20 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+}
+
 .header-nav {
   display: flex;
   gap: 0.85rem;
   flex-wrap: wrap;
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .nav-link {
