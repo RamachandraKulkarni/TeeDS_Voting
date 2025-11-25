@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import DesignCard from '../components/DesignCard'
+import ArrowIcon from '../components/ArrowIcon'
 import { getDesignPublicUrl, supabase } from '../api/supabaseClient'
 import { useSession } from '../session'
 
@@ -222,7 +223,12 @@ const VotePage = () => {
                   }}
                   disabled={castingDesignId === previewDesign.id || remainingVotes === 0}
                 >
-                  {remainingVotes === 0 ? 'No votes left' : 'Vote for this design'}
+                  <span className="pill-button__knob">
+                    <ArrowIcon />
+                  </span>
+                  <span className="pill-button__label">
+                    {remainingVotes === 0 ? 'No votes left' : 'Vote for this design'}
+                  </span>
                 </button>
               ) : (
                 <p className="notice" style={{ marginTop: 0 }}>Sign in to vote for this design.</p>

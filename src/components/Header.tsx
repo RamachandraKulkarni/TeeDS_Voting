@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSession } from '../session'
+import ArrowIcon from './ArrowIcon'
 
 const NAV_LINKS = [
   { to: '/vote', label: 'Vote feed' },
@@ -35,12 +36,18 @@ const Header = () => {
           </button>
           <div className="account-menu">
             {session ? (
-              <button type="button" onClick={handleSignOut}>
-                Sign out
+              <button type="button" onClick={handleSignOut} className="pill-button pill-button--compact">
+                <span className="pill-button__knob">
+                  <ArrowIcon />
+                </span>
+                <span className="pill-button__label">Sign out</span>
               </button>
             ) : (
-              <button type="button" onClick={handleSignIn}>
-                Sign in
+              <button type="button" onClick={handleSignIn} className="pill-button pill-button--compact">
+                <span className="pill-button__knob">
+                  <ArrowIcon />
+                </span>
+                <span className="pill-button__label">Sign in</span>
               </button>
             )}
           </div>

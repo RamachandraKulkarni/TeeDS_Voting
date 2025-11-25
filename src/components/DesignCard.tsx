@@ -1,3 +1,5 @@
+import ArrowIcon from './ArrowIcon'
+
 type DesignCardProps = {
   title: string
   imageUrl: string
@@ -41,7 +43,10 @@ const DesignCard = ({ title, imageUrl, meta, actionLabel, onAction, disabled, fo
         disabled={disabled}
         type="button"
       >
-        {actionLabel}
+        <span className="pill-button__knob">
+          <ArrowIcon />
+        </span>
+        <span className="pill-button__label">{actionLabel}</span>
       </button>
     )}
   </article>

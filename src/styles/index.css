@@ -156,6 +156,7 @@ a {
   right: 0;
   background: rgba(6, 10, 24, 0.96);
   padding: 0.45rem;
+  min-width: 210px;
   border-radius: 55% 55% 45% 45% / 80% 80% 35% 35%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 40px rgba(2, 6, 23, 0.55);
@@ -175,19 +176,15 @@ a {
 
 .account-menu button {
   display: block;
-  width: 140px;
-  border-radius: 999px;
+  width: 100%;
   border: none;
-  padding: 0.65rem 1rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(147, 197, 253, 0.15));
-  color: #f8fafc;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 200ms ease;
+  padding: 0;
+  background: none;
 }
 
-.account-menu button:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(147, 197, 253, 0.35));
+.account-menu .pill-button {
+  width: 100%;
+  min-width: 0;
 }
 
 button {
@@ -374,23 +371,98 @@ input::file-selector-button {
 }
 
 
+
 .pill-button {
-  border: 2px dashed rgba(15, 23, 42, 0.9);
-  border-radius: 1.25rem;
-  padding: 0.85rem 1.25rem;
+  --knob-size: 2.6rem;
+  --knob-gap: 0.25rem;
+  position: relative;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.3rem 0.65rem calc(var(--knob-size) + 1.5rem);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  background: #f8fafc;
-  color: #0f172a;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
   cursor: pointer;
-  transition: transform 220ms ease, border-radius 220ms ease, box-shadow 220ms ease;
-  width: 100%;
-  text-align: center;
+  transition: all 1s cubic-bezier(0.51, 0.026, 0.368, 1.016);
+  min-width: 8.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  overflow: hidden;
+  box-shadow: inset 1px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.design-card .pill-button {
+.design-card .pill-button,
+.modal-meta .pill-button {
+  width: 100%;
   margin-top: auto;
+}
+
+.pill-button__knob {
+  position: absolute;
+  left: var(--knob-gap);
+  top: var(--knob-gap);
+  width: var(--knob-size);
+  height: calc(100% - var(--knob-gap) * 2);
+  border-radius: 999px;
+  background: #34d399;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  box-shadow: inset 1px -1px 3px rgba(0, 0, 0, 0.6);
+  transition: all 1s cubic-bezier(0.51, 0.026, 0.368, 1.016);
+  transform: translateX(0);
+}
+
+.pill-button__knob svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  transition: transform 1s cubic-bezier(0.51, 0.026, 0.368, 1.016);
+}
+
+.pill-button__label {
+  transition: color 1s cubic-bezier(0.51, 0.026, 0.368, 1.016);
+}
+
+.pill-button:hover,
+.pill-button:focus-visible {
+  background: #34d399;
+  color: #0f172a;
+  padding-left: 1.25rem;
+  padding-right: calc(var(--knob-size) + 1.5rem);
+}
+
+.pill-button:hover .pill-button__knob,
+.pill-button:focus-visible .pill-button__knob {
+  background: #0f172a;
+  color: #f8fafc;
+  transform: translateX(calc(100% - var(--knob-size) - var(--knob-gap) * 2));
+}
+
+.pill-button:hover .pill-button__knob svg,
+.pill-button:focus-visible .pill-button__knob svg {
+  transform: rotate(-45deg);
+}
+
+.pill-button:active {
+  transform: scale(0.98);
+}
+
+.pill-button:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  transform: none;
+  pointer-events: none;
+}
+
+.pill-button--compact {
+  min-width: 7rem;
+  font-size: 0.85rem;
+  padding: 0.55rem 1.2rem 0.55rem calc(var(--knob-size) + 1.2rem);
 }
 
 .scramble-button {
