@@ -2,7 +2,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-const ADMIN_ANALYTICS_SECRET = Deno.env.get('ADMIN_ANALYTICS_SECRET') ?? ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -10,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-secret',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-email',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
@@ -22,9 +21,24 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ ok: false, message: 'Method not allowed' }, 405)
   }
 
-  const secret = req.headers.get('x-admin-secret') ?? ''
-  if (!secret || secret !== ADMIN_ANALYTICS_SECRET) {
-    return jsonResponse({ ok: false, message: 'Invalid admin secret' }, 401)
+  const adminEmail = (req.headers.get('x-admin-email') ?? '').trim().toLowerCase()
+  if (!adminEmail) {
+    return jsonResponse({ ok: false, message: 'Admin email required' }, 401)
+  }
+
+  const { data: adminRecord, error: adminError } = await supabase
+    .from('admins')
+    .select('email')
+    .eq('email', adminEmail)
+    .maybeSingle()
+
+  if (adminError) {
+    console.error('admin lookup failed', adminError)
+    return jsonResponse({ ok: false, message: 'Unable to validate admin access' }, 500)
+  }
+
+  if (!adminRecord) {
+    return jsonResponse({ ok: false, message: 'Admin email not recognized' }, 403)
   }
 
   try {

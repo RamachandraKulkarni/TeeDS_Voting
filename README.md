@@ -36,7 +36,7 @@ Full-stack Supabase + Vite starter for the TEEDS Design School showcase. The fro
    supabase functions deploy admin-analytics
    ```
 
-6. **Seed admins** by inserting email rows into the `admins` table and verify `settings` has the vote-limit keys you want.
+6. **Seed admins** by inserting email rows into the `admins` table. Those exact addresses are what the admin dashboard asks for when unlocking analytics. Verify `settings` has the vote-limit keys you want.
 7. **Run locally**
 
    ```bash
@@ -63,7 +63,6 @@ SUPABASE_URL=
 SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 OTP_SALT=
-ADMIN_ANALYTICS_SECRET=
 SENDGRID_API_KEY=
 SENDGRID_SENDER_EMAIL=
 SENDGRID_SENDER_NAME=

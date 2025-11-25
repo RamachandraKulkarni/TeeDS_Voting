@@ -20,24 +20,27 @@ type AnalyticsResponse = {
 const AdminPage = () => {
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null)
   const [status, setStatus] = useState<string | null>(null)
-  const [secretInput, setSecretInput] = useState('')
-  const [adminSecret, setAdminSecret] = useState(() =>
-    typeof window !== 'undefined' ? window.sessionStorage.getItem('teeds.adminSecret') ?? '' : '',
+  const [emailInput, setEmailInput] = useState('')
+  const [adminEmail, setAdminEmail] = useState(() =>
+    typeof window !== 'undefined' ? window.sessionStorage.getItem('teeds.adminEmail') ?? '' : '',
   )
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!adminSecret) return
+      if (!adminEmail) return
       try {
         const response = await fetch(`${functionsBaseUrl}/admin-analytics`, {
           headers: {
-            'X-Admin-Secret': adminSecret,
+            'X-Admin-Email': adminEmail,
           },
         })
 
         if (!response.ok) {
           if (response.status === 401) {
-            throw new Error('Invalid admin secret')
+            throw new Error('Admin email required')
+          }
+          if (response.status === 403) {
+            throw new Error('Admin email not recognized')
           }
           throw new Error('Unable to load analytics')
         }
@@ -51,27 +54,28 @@ const AdminPage = () => {
     }
 
     fetchAnalytics()
-  }, [adminSecret])
+  }, [adminEmail])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!secretInput.trim()) {
-      setStatus('Enter the shared admin key to continue.')
+    const normalized = emailInput.trim().toLowerCase()
+    if (!normalized) {
+      setStatus('Enter an admin email to continue.')
       return
     }
     setStatus(null)
-    setAdminSecret(secretInput.trim())
+    setAdminEmail(normalized)
     if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem('teeds.adminSecret', secretInput.trim())
+      window.sessionStorage.setItem('teeds.adminEmail', normalized)
     }
   }
 
   const handleReset = () => {
     setAnalytics(null)
-    setAdminSecret('')
-    setSecretInput('')
+    setAdminEmail('')
+    setEmailInput('')
     if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('teeds.adminSecret')
+      window.sessionStorage.removeItem('teeds.adminEmail')
     }
   }
 
@@ -98,19 +102,19 @@ const AdminPage = () => {
     }
   }, [analytics])
 
-  if (!adminSecret) {
+  if (!adminEmail) {
     return (
       <section>
         <div className="card">
-          <h2>Enter admin key</h2>
-          <p>This dashboard is locked behind a shared passphrase. Ask the organizers for the key.</p>
+          <h2>Enter admin email</h2>
+          <p>Only organizers listed as admins can view analytics. Enter the approved email address.</p>
           {status && <p className="notice error">{status}</p>}
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem' }}>
             <input
-              type="password"
-              placeholder="Admin secret"
-              value={secretInput}
-              onChange={(event) => setSecretInput(event.target.value)}
+              type="email"
+              placeholder="name@asu.edu"
+              value={emailInput}
+              onChange={(event) => setEmailInput(event.target.value)}
               style={{ flex: 1 }}
             />
             <button type="submit">Unlock</button>
@@ -127,7 +131,7 @@ const AdminPage = () => {
         <p>Live counts, aggregated per modality, powered by the Supabase admin edge function.</p>
         {status && <p className="notice error">{status}</p>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>Admin key active</strong>
+          <strong>Signed in as {adminEmail}</strong>
           <button type="button" onClick={handleReset} style={{ fontSize: '0.85rem' }}>
             Lock dashboard
           </button>
