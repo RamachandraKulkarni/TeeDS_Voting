@@ -30,9 +30,12 @@ const AdminPage = () => {
       if (!adminEmail) return
       try {
         const response = await fetch(`${functionsBaseUrl}/admin-analytics`, {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'X-Admin-Email': adminEmail,
           },
+          body: JSON.stringify({ adminEmail }),
         })
 
         if (!response.ok) {
@@ -107,7 +110,7 @@ const AdminPage = () => {
       <section>
         <div className="card">
           <h2>Enter admin email</h2>
-          <p>Only organizers listed as admins can view analytics. Enter the approved email address.</p>
+          <p>Only organizers listed as admins can view analytics. Enter the approved email address to unlock.</p>
           {status && <p className="notice error">{status}</p>}
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem' }}>
             <input

@@ -10,18 +10,28 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-email',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
-  if (req.method !== 'GET' && req.method !== 'POST') {
+  if (req.method !== 'POST') {
     return jsonResponse({ ok: false, message: 'Method not allowed' }, 405)
   }
 
-  const adminEmail = (req.headers.get('x-admin-email') ?? '').trim().toLowerCase()
+  let adminEmail = (req.headers.get('x-admin-email') ?? '').trim().toLowerCase()
+
+  if (!adminEmail) {
+    try {
+      const body = (await req.json()) as { adminEmail?: string }
+      adminEmail = (body.adminEmail ?? '').trim().toLowerCase()
+    } catch {
+      // ignore parse errors; handled below when we check adminEmail
+    }
+  }
+
   if (!adminEmail) {
     return jsonResponse({ ok: false, message: 'Admin email required' }, 401)
   }
