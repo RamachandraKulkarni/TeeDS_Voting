@@ -20,6 +20,8 @@ const MODALITIES: Array<{ value: string; label: string }> = [
   { value: 'in-person', label: 'In-person showcase' },
 ]
 
+const getModalityLabel = (value: string) => MODALITIES.find((option) => option.value === value)?.label ?? value
+
 const VotePage = () => {
   const { session } = useSession()
   const [designs, setDesigns] = useState<DesignRow[]>([])
@@ -28,6 +30,7 @@ const VotePage = () => {
   const [selectedModality, setSelectedModality] = useState<string>(MODALITIES[0].value)
   const [status, setStatus] = useState<string | null>(null)
   const [castingDesignId, setCastingDesignId] = useState<string | null>(null)
+  const [previewDesign, setPreviewDesign] = useState<DesignRow | null>(null)
 
   const fetchDesigns = useCallback(async () => {
     const { data, error } = await supabase
@@ -107,6 +110,8 @@ const VotePage = () => {
     [designs, selectedModality],
   )
 
+  const modalityLabel = useMemo(() => getModalityLabel(selectedModality), [selectedModality])
+
   const handleVote = async (designId: string, modality: string) => {
     if (!session) {
       setStatus('Sign in to vote')
@@ -137,14 +142,26 @@ const VotePage = () => {
     }
   }
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewDesign(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
     <section className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="panel">
-        <p className="eyebrow">Live gallery</p>
-        <h2 style={{ marginTop: 0 }}>Vote anonymously</h2>
-        <p className="header-summary">
-          Only imagery is shown to reduce bias. Votes reset automatically when the event closes, so go wild while it lasts.
-        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+          <div>
+            <p className="eyebrow">Live gallery · {modalityLabel}</p>
+            <h2 style={{ marginTop: 0, marginBottom: '0.35rem' }}>Vote anonymously</h2>
+          </div>
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.95rem' }}>Remaining votes: <strong style={{ color: '#fff' }}>{remainingVotes}</strong></p>
+        </div>
         <div className="segmented-control" role="tablist" aria-label="Modality filter">
           {MODALITIES.map((option) => (
             <button
@@ -157,11 +174,8 @@ const VotePage = () => {
             </button>
           ))}
         </div>
-        <p style={{ marginTop: '1rem', color: 'var(--muted)' }}>
-          Remaining votes in this modality: <strong style={{ color: '#fff' }}>{remainingVotes}</strong>
-        </p>
         {status && <p className={`notice ${status.toLowerCase().includes('fail') ? 'error' : ''}`}>{status}</p>}
-        {!session && <p className="notice">Sign in to cast votes and see your quota.</p>}
+        {!session && <p className="notice">Sign in to cast votes.</p>}
       </div>
 
       {visibleDesigns.length === 0 ? (
@@ -177,8 +191,44 @@ const VotePage = () => {
               actionLabel={session ? (remainingVotes === 0 ? 'No votes left' : 'Vote now') : 'Sign in to vote'}
               disabled={!session || remainingVotes === 0 || castingDesignId === design.id}
               onAction={() => handleVote(design.id, design.modality)}
+              onPreview={() => setPreviewDesign(design)}
             />
           ))}
+        </div>
+      )}
+
+      {previewDesign && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            setPreviewDesign(null)
+          }
+        }}>
+          <div className="modal-content">
+            <button className="ghost-button modal-close" type="button" onClick={() => setPreviewDesign(null)}>
+              Close
+            </button>
+            <div className="modal-media">
+              <img src={getDesignPublicUrl(previewDesign.storage_path)} alt={previewDesign.filename} />
+            </div>
+            <div className="modal-meta">
+              <p className="eyebrow" style={{ marginBottom: '0.4rem' }}>{getModalityLabel(previewDesign.modality)}</p>
+              <h3 style={{ margin: '0 0 0.35rem 0' }}>{previewDesign.filename}</h3>
+              {session ? (
+                <button
+                  className="pill-button"
+                  type="button"
+                  onClick={() => {
+                    handleVote(previewDesign.id, previewDesign.modality)
+                  }}
+                  disabled={castingDesignId === previewDesign.id || remainingVotes === 0}
+                >
+                  {remainingVotes === 0 ? 'No votes left' : 'Vote for this design'}
+                </button>
+              ) : (
+                <p className="notice" style={{ marginTop: 0 }}>Sign in to vote for this design.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </section>

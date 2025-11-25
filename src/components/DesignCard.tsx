@@ -6,10 +6,23 @@ type DesignCardProps = {
   onAction?: () => void
   disabled?: boolean
   footer?: React.ReactNode
+  onPreview?: () => void
 }
 
-const DesignCard = ({ title, imageUrl, meta, actionLabel, onAction, disabled, footer }: DesignCardProps) => (
-  <article className="design-card fade-in">
+const DesignCard = ({ title, imageUrl, meta, actionLabel, onAction, disabled, footer, onPreview }: DesignCardProps) => (
+  <article
+    className="design-card fade-in"
+    onClick={onPreview}
+    role={onPreview ? 'button' : undefined}
+    tabIndex={onPreview ? 0 : undefined}
+    onKeyDown={(event) => {
+      if (!onPreview) return
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        onPreview()
+      }
+    }}
+  >
     <div className="design-media">
       <img src={imageUrl} alt={title} loading="lazy" />
     </div>
@@ -19,7 +32,15 @@ const DesignCard = ({ title, imageUrl, meta, actionLabel, onAction, disabled, fo
     </div>
     <h3 style={{ margin: 0 }}>{title}</h3>
     {actionLabel && (
-      <button className="pill-button" onClick={onAction} disabled={disabled} type="button">
+      <button
+        className="pill-button"
+        onClick={(event) => {
+          event.stopPropagation()
+          onAction?.()
+        }}
+        disabled={disabled}
+        type="button"
+      >
         {actionLabel}
       </button>
     )}
