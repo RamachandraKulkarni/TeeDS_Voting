@@ -9,46 +9,16 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-email',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
-  if (req.method !== 'POST') {
+  if (req.method !== 'GET') {
     return jsonResponse({ ok: false, message: 'Method not allowed' }, 405)
-  }
-
-  let adminEmail = (req.headers.get('x-admin-email') ?? '').trim().toLowerCase()
-
-  if (!adminEmail) {
-    try {
-      const body = (await req.json()) as { adminEmail?: string }
-      adminEmail = (body.adminEmail ?? '').trim().toLowerCase()
-    } catch {
-      // ignore parse errors; handled below when we check adminEmail
-    }
-  }
-
-  if (!adminEmail) {
-    return jsonResponse({ ok: false, message: 'Admin email required' }, 401)
-  }
-
-  const { data: adminRecord, error: adminError } = await supabase
-    .from('admins')
-    .select('email')
-    .eq('email', adminEmail)
-    .maybeSingle()
-
-  if (adminError) {
-    console.error('admin lookup failed', adminError)
-    return jsonResponse({ ok: false, message: 'Unable to validate admin access' }, 500)
-  }
-
-  if (!adminRecord) {
-    return jsonResponse({ ok: false, message: 'Admin email not recognized' }, 403)
   }
 
   try {

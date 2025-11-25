@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   BarElement,
   CategoryScale,
@@ -9,6 +9,7 @@ import {
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
 import { functionsBaseUrl } from '../api/supabaseClient'
+import { useSession } from '../session'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip)
 
@@ -17,34 +18,23 @@ type AnalyticsResponse = {
   leaderboard: Array<{ design_id: string; filename: string; modality: string; total_votes: number }>
 }
 
+const ALLOWED_ADMINS = ['rkulka43@asu.edu', 'arobin13@asu.edu']
+
 const AdminPage = () => {
+  const { session } = useSession()
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null)
   const [status, setStatus] = useState<string | null>(null)
-  const [emailInput, setEmailInput] = useState('')
-  const [adminEmail, setAdminEmail] = useState(() =>
-    typeof window !== 'undefined' ? window.sessionStorage.getItem('teeds.adminEmail') ?? '' : '',
-  )
+
+  const adminEmail = session?.user.email?.toLowerCase() ?? ''
+  const isAllowed = Boolean(adminEmail && ALLOWED_ADMINS.includes(adminEmail))
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!adminEmail) return
+      if (!isAllowed) return
       try {
-        const response = await fetch(`${functionsBaseUrl}/admin-analytics`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Admin-Email': adminEmail,
-          },
-          body: JSON.stringify({ adminEmail }),
-        })
+        const response = await fetch(`${functionsBaseUrl}/admin-analytics`)
 
         if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error('Admin email required')
-          }
-          if (response.status === 403) {
-            throw new Error('Admin email not recognized')
-          }
           throw new Error('Unable to load analytics')
         }
 
@@ -57,30 +47,7 @@ const AdminPage = () => {
     }
 
     fetchAnalytics()
-  }, [adminEmail])
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const normalized = emailInput.trim().toLowerCase()
-    if (!normalized) {
-      setStatus('Enter an admin email to continue.')
-      return
-    }
-    setStatus(null)
-    setAdminEmail(normalized)
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem('teeds.adminEmail', normalized)
-    }
-  }
-
-  const handleReset = () => {
-    setAnalytics(null)
-    setAdminEmail('')
-    setEmailInput('')
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('teeds.adminEmail')
-    }
-  }
+  }, [isAllowed])
 
   const chartData = useMemo(() => {
     if (!analytics) {
@@ -105,23 +72,16 @@ const AdminPage = () => {
     }
   }, [analytics])
 
-  if (!adminEmail) {
+  if (!session) {
+    return <p className="notice">Sign in to view the analytics dashboard.</p>
+  }
+
+  if (!isAllowed) {
     return (
       <section>
         <div className="card">
-          <h2>Enter admin email</h2>
-          <p>Only organizers listed as admins can view analytics. Enter the approved email address to unlock.</p>
-          {status && <p className="notice error">{status}</p>}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem' }}>
-            <input
-              type="email"
-              placeholder="name@asu.edu"
-              value={emailInput}
-              onChange={(event) => setEmailInput(event.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button type="submit">Unlock</button>
-          </form>
+          <h2>Analytics overview</h2>
+          <p className="notice error">Your account is not authorized to view analytics. Contact the organizers if this is unexpected.</p>
         </div>
       </section>
     )
@@ -133,11 +93,8 @@ const AdminPage = () => {
         <h2>Analytics overview</h2>
         <p>Live counts, aggregated per modality, powered by the Supabase admin edge function.</p>
         {status && <p className="notice error">{status}</p>}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>Signed in as {adminEmail}</strong>
-          <button type="button" onClick={handleReset} style={{ fontSize: '0.85rem' }}>
-            Lock dashboard
-          </button>
+        <div style={{ marginBottom: '0.75rem' }}>
+          <strong>Signed in as {session.user.email}</strong>
         </div>
         {chartData ? <Bar data={chartData} /> : <p>Loading chart...</p>}
       </div>
