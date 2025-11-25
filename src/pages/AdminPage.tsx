@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import { functionsBaseUrl } from '../api/supabaseClient'
+import { functionsBaseUrl, publicAnonKey } from '../api/supabaseClient'
 import { useSession } from '../session'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip)
@@ -32,7 +32,12 @@ const AdminPage = () => {
     const fetchAnalytics = async () => {
       if (!isAllowed) return
       try {
-        const response = await fetch(`${functionsBaseUrl}/admin-analytics`)
+        const response = await fetch(`${functionsBaseUrl}/admin-analytics`, {
+          headers: {
+            apikey: publicAnonKey,
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+        })
 
         if (!response.ok) {
           throw new Error('Unable to load analytics')

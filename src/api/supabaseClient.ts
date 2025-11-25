@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !anonKey) {
   throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY environment variables')
 }
 
-const requiredAnonKey = supabaseAnonKey as string
+export const publicAnonKey = anonKey as string
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl, publicAnonKey, {
   auth: {
     persistSession: false,
   },
@@ -22,12 +22,12 @@ export async function invokeEdgeFunction<TResponse>(
   body: Record<string, unknown>,
   token?: string,
 ): Promise<TResponse> {
-  const authToken = token ?? requiredAnonKey
+  const authToken = token ?? publicAnonKey
   const response = await fetch(`${functionsBaseUrl}/${name}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      apikey: requiredAnonKey,
+      apikey: publicAnonKey,
       Authorization: `Bearer ${authToken}`,
     },
     body: JSON.stringify(body),
