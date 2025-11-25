@@ -138,35 +138,43 @@ const VotePage = () => {
   }
 
   return (
-    <section>
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <h2>Vote anonymously</h2>
-        <p>Only images are shown to keep things unbiased. Votes reset automatically when the event closes.</p>
-        <label>
-          Modality filter
-          <select value={selectedModality} onChange={(event) => setSelectedModality(event.target.value)}>
-            {MODALITIES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p>Remaining votes for this modality: <strong>{remainingVotes}</strong></p>
+    <section className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="panel">
+        <p className="eyebrow">Live gallery</p>
+        <h2 style={{ marginTop: 0 }}>Vote anonymously</h2>
+        <p className="header-summary">
+          Only imagery is shown to reduce bias. Votes reset automatically when the event closes, so go wild while it lasts.
+        </p>
+        <div className="segmented-control" role="tablist" aria-label="Modality filter">
+          {MODALITIES.map((option) => (
+            <button
+              key={option.value}
+              className={`segmented-option ${selectedModality === option.value ? 'active' : ''}`}
+              type="button"
+              onClick={() => setSelectedModality(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p style={{ marginTop: '1rem', color: 'var(--muted)' }}>
+          Remaining votes in this modality: <strong style={{ color: '#fff' }}>{remainingVotes}</strong>
+        </p>
         {status && <p className={`notice ${status.toLowerCase().includes('fail') ? 'error' : ''}`}>{status}</p>}
+        {!session && <p className="notice">Sign in to cast votes and see your quota.</p>}
       </div>
 
       {visibleDesigns.length === 0 ? (
         <p className="notice">Design uploads will appear here automatically.</p>
       ) : (
-        <div className="grid">
+        <div className="design-grid">
           {visibleDesigns.map((design) => (
             <DesignCard
               key={design.id}
               title={design.filename}
               meta={design.modality}
               imageUrl={getDesignPublicUrl(design.storage_path)}
-              actionLabel={session ? 'Vote' : 'Sign in to vote'}
+              actionLabel={session ? (remainingVotes === 0 ? 'No votes left' : 'Vote now') : 'Sign in to vote'}
               disabled={!session || remainingVotes === 0 || castingDesignId === design.id}
               onAction={() => handleVote(design.id, design.modality)}
             />

@@ -9,24 +9,20 @@ type DesignCardProps = {
 }
 
 const DesignCard = ({ title, imageUrl, meta, actionLabel, onAction, disabled, footer }: DesignCardProps) => (
-  <article className="card" style={{ padding: '1rem' }}>
-    <div style={{ width: '100%', aspectRatio: '4 / 5', overflow: 'hidden', borderRadius: '0.75rem', marginBottom: '0.75rem' }}>
-      <img
-        src={imageUrl}
-        alt={title}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-      />
+  <article className="design-card fade-in">
+    <div className="design-media">
+      <img src={imageUrl} alt={title} loading="lazy" />
     </div>
-    <h3 style={{ margin: '0 0 0.25rem 0' }}>{title}</h3>
-    {meta && (
-      <small style={{ display: 'block', marginBottom: '0.75rem', color: '#6366f1' }}>{meta}</small>
-    )}
+    <div className="design-meta">
+      <span>{meta ?? 'Design drop'}</span>
+      {footer}
+    </div>
+    <h3 style={{ margin: 0 }}>{title}</h3>
     {actionLabel && (
-      <button onClick={onAction} disabled={disabled} type="button" style={{ width: '100%' }}>
+      <button className="pill-button" onClick={onAction} disabled={disabled} type="button">
         {actionLabel}
       </button>
     )}
-    {footer}
   </article>
 )
 

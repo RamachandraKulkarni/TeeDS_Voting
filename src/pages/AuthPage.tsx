@@ -56,16 +56,20 @@ const AuthPage = () => {
   }
 
   return (
-    <section className="card" style={{ maxWidth: '480px', margin: '0 auto' }}>
-      <h2>ASU OTP Sign in</h2>
-      <p>We keep accounts simple: enter your @asu.edu email, then confirm with the 6-digit OTP.</p>
+    <section className="panel highlight fade-in" style={{ maxWidth: '520px', margin: '0 auto' }}>
+      <p className="eyebrow">Secure portal</p>
+      <h2 style={{ marginTop: 0 }}>ASU OTP sign in</h2>
+      <p className="header-summary">
+        Link your @asu.edu identity, then type the six-digit code we drop into your inbox. It keeps the vote clean and the
+        experience super fast.
+      </p>
 
       {status && <p className={`notice ${status.toLowerCase().includes('fail') ? 'error' : ''}`}>{status}</p>}
 
       {step === 'request' ? (
-        <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleRequestOtp}>
           <label>
-            ASU Email
+            ASU email
             <input
               type="email"
               required
@@ -74,12 +78,12 @@ const AuthPage = () => {
               placeholder="you@asu.edu"
             />
           </label>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Sending...' : 'Send OTP'}
+          <button className="glow-button" type="submit" disabled={isLoading}>
+            {isLoading ? 'Sending…' : 'Send OTP'}
           </button>
         </form>
       ) : (
-        <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleVerifyOtp}>
           <label>
             6-digit OTP
             <input
@@ -92,10 +96,10 @@ const AuthPage = () => {
               placeholder="000000"
             />
           </label>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Checking...' : 'Verify & Continue'}
+          <button className="glow-button" type="submit" disabled={isLoading}>
+            {isLoading ? 'Checking…' : 'Verify & Continue'}
           </button>
-          <button type="button" onClick={() => setStep('request')} disabled={isLoading}>
+          <button className="ghost-button" type="button" onClick={() => setStep('request')} disabled={isLoading}>
             Start over
           </button>
         </form>

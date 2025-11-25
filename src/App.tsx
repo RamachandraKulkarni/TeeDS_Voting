@@ -11,32 +11,34 @@ import { SessionProvider } from './session'
 function App() {
 	return (
 		<SessionProvider>
-			<Header />
-			<main>
-				<Routes>
-					<Route path="/" element={<Navigate to="/vote" replace />} />
-					<Route path="/auth" element={<AuthPage />} />
-					<Route
-						path="/upload"
-						element={
-							<PrivateRoute>
-								<UploadPage />
-							</PrivateRoute>
-						}
-					/>
-					<Route path="/vote" element={<VotePage />} />
-					<Route
-						path="/admin"
-						element={
-							<PrivateRoute requireAdmin>
-								<AdminPage />
-							</PrivateRoute>
-						}
-					/>
-					<Route path="/not-admin" element={<ErrorNotAdmin />} />
-					<Route path="*" element={<Navigate to="/vote" replace />} />
-				</Routes>
-			</main>
+			<div className="app-shell">
+				<Header />
+				<main className="app-main">
+					<Routes>
+						<Route path="/" element={<Navigate to="/vote" replace />} />
+						<Route path="/auth" element={<AuthPage />} />
+						<Route
+							path="/upload"
+							element={
+								<PrivateRoute>
+									<UploadPage />
+								</PrivateRoute>
+							}
+						/>
+						<Route path="/vote" element={<VotePage />} />
+						<Route
+							path="/admin"
+							element={
+								<PrivateRoute requireAdmin>
+									<AdminPage />
+								</PrivateRoute>
+							}
+						/>
+						<Route path="/not-admin" element={<ErrorNotAdmin />} />
+						<Route path="*" element={<Navigate to="/vote" replace />} />
+					</Routes>
+				</main>
+			</div>
 		</SessionProvider>
 	)
 }

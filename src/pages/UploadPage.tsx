@@ -134,19 +134,30 @@ const UploadPage = () => {
   }
 
   if (!session) {
-    return <p className="notice">Sign in to upload your designs.</p>
+    return (
+      <section className="panel highlight fade-in">
+        <h2>Upload center</h2>
+        <p className="header-summary">Sign in to drop your looks into the showcase.</p>
+      </section>
+    )
   }
 
   return (
-    <section>
-      <div className="card">
-        <h2>Upload designs</h2>
-        <p>Each modality allows two uploads per designer. Files go straight into the Supabase storage bucket named <code>designs</code>.</p>
+    <section className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="panel highlight">
+        <p className="eyebrow">Creator console</p>
+        <h2 style={{ marginTop: 0 }}>Upload designs</h2>
+        <p className="header-summary">
+          Each modality allows two uploads per designer. Files go straight into the Supabase storage bucket named <code>designs</code>.
+        </p>
         {lockedModality && (
-          <p className="notice">Your uploads are locked to <strong>{MODALITIES.find((m) => m.value === lockedModality)?.label ?? lockedModality}</strong>. Delete existing designs to switch modalities.</p>
+          <p className="notice">
+            Your uploads are locked to <strong>{MODALITIES.find((m) => m.value === lockedModality)?.label ?? lockedModality}</strong>.
+            Delete existing designs to switch modalities.
+          </p>
         )}
         {message && <p className={`notice ${message.toLowerCase().includes('fail') ? 'error' : ''}`}>{message}</p>}
-        <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleUpload}>
           <label>
             Modality
             <select
@@ -165,25 +176,31 @@ const UploadPage = () => {
             Design file (JPG/PNG)
             <input type="file" accept="image/*" required onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </label>
-          <button type="submit" disabled={isUploading || !file || limitReached}>
-            {limitReached ? 'Limit reached' : isUploading ? 'Uploading...' : 'Upload'}
+          <button className="glow-button" type="submit" disabled={isUploading || !file || limitReached}>
+            {limitReached ? 'Limit reached' : isUploading ? 'Uploading…' : 'Upload'}
           </button>
         </form>
       </div>
 
-      <div>
-        <h2>My uploads</h2>
+      <div className="panel">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+          <div>
+            <p className="eyebrow">Library</p>
+            <h2 style={{ marginTop: 0 }}>My uploads</h2>
+          </div>
+          <p style={{ color: 'var(--muted)' }}>{designs.length}/2 in {selectedModality.replace('-', ' ')} queue</p>
+        </div>
         {designs.length === 0 ? (
           <p className="notice">No uploads yet.</p>
         ) : (
-          <div className="grid">
+          <div className="design-grid">
             {designs.map((design) => (
               <DesignCard
                 key={design.id}
                 title={design.filename}
                 meta={design.modality}
                 imageUrl={getDesignPublicUrl(design.storage_path)}
-                actionLabel="Delete"
+                actionLabel={deletingId === design.id ? 'Deleting…' : 'Delete'}
                 onAction={() => handleDelete(design.id, design.storage_path)}
                 disabled={deletingId === design.id}
               />
