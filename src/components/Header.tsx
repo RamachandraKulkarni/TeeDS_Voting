@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSession } from '../session'
-import ArrowIcon from './ArrowIcon'
 
 const NAV_LINKS = [
   { to: '/vote', label: 'Vote feed' },
@@ -43,54 +42,42 @@ const Header = () => {
   return (
     <header className="header-panel fade-in">
       <div className="header-bar header-bar--single">
-        <div className="header-nav-group">
-          <nav className="header-nav">
-            {NAV_LINKS.map((link) => (
-              <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="header-auth" ref={menuRef}>
-            {session ? (
-              <>
-                <button
-                  type="button"
-                  className="pill-button pill-button--compact header-auth-button"
-                  onClick={() => setMenuOpen((prev) => !prev)}
-                >
-                  <span className="pill-button__knob">
-                    <ArrowIcon />
-                  </span>
-                  <span className="pill-button__label">{displayName}</span>
-                </button>
-                {showDropdown && (
-                  <div className="auth-dropdown" role="menu">
-                    <div className="auth-dropdown__identity">
-                      <p>{session.user.fullName ?? session.user.email}</p>
-                      <small>{session.user.email}</small>
-                    </div>
-                    <button type="button" onClick={handleSignOut}>
-                      Sign out
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
+        <nav className="header-nav">
+          {NAV_LINKS.map((link) => (
+            <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="header-center">TEEDS 2026 · Design Showcase</div>
+        <div className="header-auth" ref={menuRef}>
+          {session ? (
+            <>
               <button
                 type="button"
-                onClick={handleSignIn}
-                className="pill-button pill-button--compact header-auth-button"
+                className="nav-link nav-link--action"
+                onClick={() => setMenuOpen((prev) => !prev)}
               >
-                <span className="pill-button__knob">
-                  <ArrowIcon />
-                </span>
-                <span className="pill-button__label">Sign in</span>
+                {displayName}
               </button>
-            )}
-          </div>
+              {showDropdown && (
+                <div className="auth-dropdown" role="menu">
+                  <div className="auth-dropdown__identity">
+                    <p>{session.user.fullName ?? session.user.email}</p>
+                    <small>{session.user.email}</small>
+                  </div>
+                  <button type="button" onClick={handleSignOut}>
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <button type="button" onClick={handleSignIn} className="nav-link nav-link--action">
+              Sign in
+            </button>
+          )}
         </div>
-        <div className="header-center">TEEDS 2026 · Design Showcase</div>
       </div>
     </header>
   )
