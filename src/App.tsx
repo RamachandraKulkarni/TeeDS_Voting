@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Header from './components/Header'
+import InstructionsModal from './components/InstructionsModal'
 import PrivateRoute from './components/PrivateRoute'
 import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
@@ -12,6 +13,7 @@ function App() {
 	return (
 		<SessionProvider>
 			<div className="app-shell">
+				<InstructionsModal />
 				<Header />
 				<main className="app-main">
 					<Routes>

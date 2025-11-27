@@ -1,5 +1,3 @@
-'use client'
-
 import {
   createContext,
   useContext,
@@ -15,6 +13,9 @@ export type Session = {
     id: string
     email: string
     isAdmin: boolean
+    fullName?: string | null
+    asuId?: string | null
+    discipline?: string | null
   }
 }
 

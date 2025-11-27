@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSession } from '../session'
 import ArrowIcon from './ArrowIcon'
@@ -11,39 +12,76 @@ const NAV_LINKS = [
 const Header = () => {
   const navigate = useNavigate()
   const { session, clearSession } = useSession()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   const handleSignOut = () => {
     clearSession()
     navigate('/auth')
+    setMenuOpen(false)
   }
 
-  const handleSignIn = () => navigate('/auth')
+  const handleSignIn = () => {
+    setMenuOpen(false)
+    navigate('/auth')
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClick = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
+  const displayName = session?.user.fullName?.split(' ')[0] ?? session?.user.email ?? 'Sign in'
+  const showDropdown = Boolean(session && menuOpen)
 
   return (
     <header className="header-panel fade-in">
       <div className="header-bar header-bar--single">
-        <nav className="header-nav">
-          {NAV_LINKS.map((link) => (
-            <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="header-center">TEEDS 2026 · Design Showcase</div>
-        <div className="account-dropdown">
-          <button className="user-chip account-trigger" type="button">
-            {session ? session.user.email : 'Guest account'}
-          </button>
-          <div className="account-menu">
+        <div className="header-nav-group">
+          <nav className="header-nav">
+            {NAV_LINKS.map((link) => (
+              <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="header-auth" ref={menuRef}>
             {session ? (
-              <button type="button" onClick={handleSignOut} className="pill-button pill-button--compact">
-                <span className="pill-button__knob">
-                  <ArrowIcon />
-                </span>
-                <span className="pill-button__label">Sign out</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="pill-button pill-button--compact header-auth-button"
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                >
+                  <span className="pill-button__knob">
+                    <ArrowIcon />
+                  </span>
+                  <span className="pill-button__label">{displayName}</span>
+                </button>
+                {showDropdown && (
+                  <div className="auth-dropdown" role="menu">
+                    <div className="auth-dropdown__identity">
+                      <p>{session.user.fullName ?? session.user.email}</p>
+                      <small>{session.user.email}</small>
+                    </div>
+                    <button type="button" onClick={handleSignOut}>
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
-              <button type="button" onClick={handleSignIn} className="pill-button pill-button--compact">
+              <button
+                type="button"
+                onClick={handleSignIn}
+                className="pill-button pill-button--compact header-auth-button"
+              >
                 <span className="pill-button__knob">
                   <ArrowIcon />
                 </span>
@@ -52,6 +90,7 @@ const Header = () => {
             )}
           </div>
         </div>
+        <div className="header-center">TEEDS 2026 · Design Showcase</div>
       </div>
     </header>
   )

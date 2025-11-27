@@ -24,8 +24,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, otp } = (await req.json()) as { email?: string; otp?: string }
+    const { email, otp, fullName, asuId, discipline } = (await req.json()) as {
+      email?: string
+      otp?: string
+      fullName?: string
+      asuId?: string
+      discipline?: string
+    }
     const normalizedEmail = email?.trim().toLowerCase()
+    const normalizedName = fullName?.trim()
+    const normalizedAsuId = asuId?.trim()
+    const normalizedDiscipline = discipline?.trim()
 
     if (!normalizedEmail || !otp) {
       return jsonResponse({ ok: false, message: 'Email and OTP required' }, 400)
@@ -58,14 +67,19 @@ Deno.serve(async (req) => {
 
     let { data: user } = await supabase
       .from('users')
-      .select('id, email, is_admin')
+      .select('id, email, is_admin, full_name, asu_id, discipline')
       .eq('email', normalizedEmail)
       .maybeSingle()
 
     if (!user) {
       const { data: created } = await supabase
         .from('users')
-        .insert({ email: normalizedEmail })
+        .insert({
+          email: normalizedEmail,
+          full_name: normalizedName ?? null,
+          asu_id: normalizedAsuId ?? null,
+          discipline: normalizedDiscipline ?? null,
+        })
         .select()
         .single()
       user = created ?? null
@@ -73,6 +87,22 @@ Deno.serve(async (req) => {
 
     if (!user) {
       throw new Error('Unable to create user record')
+    }
+
+    const profileUpdates: Record<string, string | null> = {}
+    if (normalizedName && normalizedName !== user.full_name) {
+      profileUpdates.full_name = normalizedName
+    }
+    if (normalizedAsuId && normalizedAsuId !== user.asu_id) {
+      profileUpdates.asu_id = normalizedAsuId
+    }
+    if (normalizedDiscipline && normalizedDiscipline !== user.discipline) {
+      profileUpdates.discipline = normalizedDiscipline
+    }
+
+    if (Object.keys(profileUpdates).length > 0) {
+      await supabase.from('users').update(profileUpdates).eq('id', user.id)
+      user = { ...user, ...profileUpdates }
     }
 
     const { data: adminRecord } = await supabase
@@ -96,7 +126,14 @@ Deno.serve(async (req) => {
       ok: true,
       session: {
         token: session,
-        user: { id: user.id, email: normalizedEmail, isAdmin },
+        user: {
+          id: user.id,
+          email: normalizedEmail,
+          isAdmin,
+          fullName: user.full_name ?? null,
+          asuId: user.asu_id ?? null,
+          discipline: user.discipline ?? null,
+        },
       },
     })
   } catch (error) {

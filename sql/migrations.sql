@@ -5,9 +5,16 @@ create extension if not exists "pgcrypto";
 create table if not exists public.users (
   id uuid primary key default gen_random_uuid(),
   email text unique not null,
+  full_name text,
+  asu_id text,
+  discipline text,
   is_admin boolean default false,
   created_at timestamptz default timezone('utc', now())
 );
+
+alter table public.users add column if not exists full_name text;
+alter table public.users add column if not exists asu_id text;
+alter table public.users add column if not exists discipline text;
 
 -- OTP storage (hashed, expiring)
 create table if not exists public.otps (

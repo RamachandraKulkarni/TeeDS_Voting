@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 :root {
-  font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #f8fafc;
@@ -19,6 +19,11 @@
   --danger: #f87171;
   --border: rgba(255, 255, 255, 0.12);
   --glow: rgba(168, 85, 247, 0.6);
+  --asu-gold: #ffc627;
+  --asu-gold-bright: #ffe27a;
+  --asu-gold-muted: rgba(255, 198, 39, 0.18);
+  --asu-gold-shadow: rgba(255, 198, 39, 0.35);
+  --asu-ink: #1b1300;
 }
 
 *,
@@ -111,6 +116,66 @@ a {
   margin-top: 0;
 }
 
+.header-nav-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.header-auth {
+  position: relative;
+}
+
+.header-auth-button {
+  min-width: 9rem;
+}
+
+.auth-dropdown {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  background: rgba(7, 11, 26, 0.98);
+  padding: 0.85rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: min(240px, 80vw);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+  z-index: 10;
+}
+
+.auth-dropdown__identity {
+  margin-bottom: 0.5rem;
+}
+
+.auth-dropdown__identity p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.auth-dropdown__identity small {
+  color: var(--muted);
+}
+
+.auth-dropdown button {
+  width: 100%;
+  border: none;
+  border-radius: 0.85rem;
+  padding: 0.65rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.auth-dropdown button:hover,
+.auth-dropdown button:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .header-center {
   flex: 1 1 220px;
   text-align: center;
@@ -200,7 +265,7 @@ button {
 }
 
 button:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--asu-gold-muted);
   transform: translateY(-1px);
 }
 
@@ -217,15 +282,15 @@ button:disabled {
   border: none;
   font-weight: 600;
   padding: 0.85rem 1.6rem;
-  background: linear-gradient(120deg, #f97316, #fcd34d);
-  color: #050505;
-  box-shadow: 0 12px 35px rgba(249, 115, 22, 0.35);
+  background: linear-gradient(120deg, var(--asu-gold), var(--asu-gold-bright));
+  color: var(--asu-ink);
+  box-shadow: 0 12px 35px var(--asu-gold-shadow);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .glow-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 45px rgba(249, 115, 22, 0.45);
+  box-shadow: 0 18px 45px rgba(255, 198, 39, 0.45);
 }
 
 .ghost-button {
@@ -272,8 +337,12 @@ button:disabled,
   transition: background 200ms ease, color 200ms ease;
 }
 
+.segmented-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .segmented-option.active {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--asu-gold-muted);
   color: var(--text);
 }
 
@@ -382,7 +451,7 @@ input::file-selector-button {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--asu-gold-muted);
   color: #f8fafc;
   cursor: pointer;
   transition: all 1s cubic-bezier(0.51, 0.026, 0.368, 1.016);
@@ -408,11 +477,11 @@ input::file-selector-button {
   width: var(--knob-size);
   height: calc(100% - var(--knob-gap) * 2);
   border-radius: 999px;
-  background: #34d399;
+  background: var(--asu-gold);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #0f172a;
+  color: var(--asu-ink);
   box-shadow: inset 1px -1px 3px rgba(0, 0, 0, 0.6);
   transition: all 1s cubic-bezier(0.51, 0.026, 0.368, 1.016);
   transform: translateX(0);
@@ -430,16 +499,16 @@ input::file-selector-button {
 
 .pill-button:hover,
 .pill-button:focus-visible {
-  background: #34d399;
-  color: #0f172a;
+  background: var(--asu-gold);
+  color: var(--asu-ink);
   padding-left: 1.25rem;
   padding-right: calc(var(--knob-size) + 1.5rem);
 }
 
 .pill-button:hover .pill-button__knob,
 .pill-button:focus-visible .pill-button__knob {
-  background: #0f172a;
-  color: #f8fafc;
+  background: #05080f;
+  color: var(--asu-gold);
   transform: translateX(calc(100% - var(--knob-size) - var(--knob-gap) * 2));
 }
 
@@ -538,7 +607,7 @@ input::file-selector-button {
   border: 1px dashed rgba(148, 163, 184, 0.6);
   background: rgba(15, 23, 42, 0.9);
   color: #cbd5f5;
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Roboto', system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -617,6 +686,44 @@ input::file-selector-button {
   gap: 1.5rem;
   padding: 1.5rem;
   position: relative;
+}
+
+.instructions-overlay {
+  align-items: center;
+}
+
+.instructions-modal {
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: left;
+}
+
+.instructions-modal .modal-close {
+  position: absolute;
+}
+
+.instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #f8fafc;
+}
+
+.instructions-list li {
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.instructions-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--asu-gold);
 }
 
 .modal-media {

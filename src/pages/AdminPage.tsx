@@ -10,6 +10,7 @@ import {
 import { Bar } from 'react-chartjs-2'
 import { functionsBaseUrl, publicAnonKey } from '../api/supabaseClient'
 import { useSession } from '../session'
+import { getModalityLabel } from '../constants/modalities'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip)
 
@@ -19,12 +20,6 @@ type AnalyticsResponse = {
 }
 
 const ALLOWED_ADMINS = ['rkulka43@asu.edu', 'arobin13@asu.edu']
-
-const formatModality = (value: string) => {
-  if (value === 'online') return 'Online gallery'
-  if (value === 'in-person') return 'In-person showcase'
-  return value
-}
 
 const AdminPage = () => {
   const { session } = useSession()
@@ -65,7 +60,7 @@ const AdminPage = () => {
       return null
     }
 
-    const labels = analytics.totals.map((row) => formatModality(row.modality))
+    const labels = analytics.totals.map((row) => getModalityLabel(row.modality))
     return {
       labels,
       datasets: [
@@ -125,12 +120,14 @@ const AdminPage = () => {
         <h2 style={{ marginTop: 0 }}>Analytics overview</h2>
         <p className="header-summary">Live counts, aggregated per modality, powered by the Supabase admin edge function.</p>
         {status && <p className="notice error">{status}</p>}
-        <div style={{ marginBottom: '1rem', color: 'var(--muted)' }}>Signed in as {session.user.email}</div>
+        <div style={{ marginBottom: '1rem', color: 'var(--muted)' }}>
+          Signed in as {session.user.fullName ?? session.user.email}
+        </div>
 
         <div className="stat-grid">
           {analytics?.totals.map((row) => (
             <div key={row.modality} className="stat-card">
-              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{formatModality(row.modality)}</p>
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{getModalityLabel(row.modality)}</p>
               <strong>{row.designs}</strong>
               <small style={{ color: 'var(--muted)' }}>{row.votes} votes</small>
             </div>
@@ -149,7 +146,7 @@ const AdminPage = () => {
           <div className="leaderboard-grid">
             {Object.entries(leaderboardByModality).map(([modality, rows]) => (
               <div key={modality} className="leaderboard-card">
-                <h4 style={{ marginTop: 0, marginBottom: '0.75rem' }}>{formatModality(modality)}</h4>
+                <h4 style={{ marginTop: 0, marginBottom: '0.75rem' }}>{getModalityLabel(modality)}</h4>
                 <ol>
                   {rows.map((row, index) => (
                     <li key={row.design_id} className="leaderboard-row">

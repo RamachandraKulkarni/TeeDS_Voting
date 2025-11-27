@@ -2,22 +2,18 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase, getDesignPublicUrl, invokeEdgeFunction } from '../api/supabaseClient'
 import { useSession } from '../session'
 import DesignCard from '../components/DesignCard'
+import { MODALITIES, ModalityValue, getModalityLabel } from '../constants/modalities'
 
 type DesignRow = {
   id: string
   filename: string
-  modality: string
+  modality: ModalityValue
   storage_path: string
 }
 
-const MODALITIES = [
-  { value: 'online', label: 'Online gallery' },
-  { value: 'in-person', label: 'In-person showcase' },
-]
-
 const UploadPage = () => {
   const { session } = useSession()
-  const [selectedModality, setSelectedModality] = useState(MODALITIES[0].value)
+  const [selectedModality, setSelectedModality] = useState<ModalityValue>(MODALITIES[0].value)
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -26,7 +22,7 @@ const UploadPage = () => {
 
   const limitReached = designs.length >= 2
 
-  const lockedModality = useMemo(() => (designs.length > 0 ? designs[0].modality : null), [designs])
+  const lockedModality = useMemo<ModalityValue | null>(() => (designs.length > 0 ? designs[0].modality : null), [designs])
   useEffect(() => {
     if (lockedModality && selectedModality !== lockedModality) {
       setSelectedModality(lockedModality)
@@ -152,8 +148,7 @@ const UploadPage = () => {
         </p>
         {lockedModality && (
           <p className="notice">
-            Your uploads are locked to <strong>{MODALITIES.find((m) => m.value === lockedModality)?.label ?? lockedModality}</strong>.
-            Delete existing designs to switch modalities.
+            Your uploads are locked to <strong>{getModalityLabel(lockedModality)}</strong>. Delete existing designs to switch modalities.
           </p>
         )}
         {message && <p className={`notice ${message.toLowerCase().includes('fail') ? 'error' : ''}`}>{message}</p>}
@@ -162,7 +157,7 @@ const UploadPage = () => {
             Modality
             <select
               value={selectedModality}
-              onChange={(event) => setSelectedModality(event.target.value)}
+              onChange={(event) => setSelectedModality(event.target.value as ModalityValue)}
               disabled={Boolean(lockedModality)}
             >
               {MODALITIES.map((modality) => (
@@ -188,7 +183,7 @@ const UploadPage = () => {
             <p className="eyebrow">Library</p>
             <h2 style={{ marginTop: 0 }}>My uploads</h2>
           </div>
-          <p style={{ color: 'var(--muted)' }}>{designs.length}/2 in {selectedModality.replace('-', ' ')} queue</p>
+          <p style={{ color: 'var(--muted)' }}>{designs.length}/2 in {getModalityLabel(selectedModality)} queue</p>
         </div>
         {designs.length === 0 ? (
           <p className="notice">No uploads yet.</p>
@@ -198,7 +193,7 @@ const UploadPage = () => {
               <DesignCard
                 key={design.id}
                 title={design.filename}
-                meta={design.modality}
+                meta={getModalityLabel(design.modality)}
                 imageUrl={getDesignPublicUrl(design.storage_path)}
                 actionLabel={deletingId === design.id ? 'Deleting…' : 'Delete'}
                 onAction={() => handleDelete(design.id, design.storage_path)}

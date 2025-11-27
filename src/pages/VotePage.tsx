@@ -3,11 +3,12 @@ import DesignCard from '../components/DesignCard'
 import ArrowIcon from '../components/ArrowIcon'
 import { getDesignPublicUrl, supabase } from '../api/supabaseClient'
 import { useSession } from '../session'
+import { MODALITIES, ModalityValue, getModalityLabel } from '../constants/modalities'
 
 type DesignRow = {
   id: string
   filename: string
-  modality: string
+  modality: ModalityValue
   storage_path: string
 }
 
@@ -16,19 +17,12 @@ type SettingsRow = {
   value: string
 }
 
-const MODALITIES: Array<{ value: string; label: string }> = [
-  { value: 'online', label: 'Online gallery' },
-  { value: 'in-person', label: 'In-person showcase' },
-]
-
-const getModalityLabel = (value: string) => MODALITIES.find((option) => option.value === value)?.label ?? value
-
 const VotePage = () => {
   const { session } = useSession()
   const [designs, setDesigns] = useState<DesignRow[]>([])
   const [userVotes, setUserVotes] = useState<Record<string, number>>({})
   const [settings, setSettings] = useState<Record<string, number>>({ default: 1 })
-  const [selectedModality, setSelectedModality] = useState<string>(MODALITIES[0].value)
+  const [selectedModality, setSelectedModality] = useState<ModalityValue>(MODALITIES[0].value)
   const [status, setStatus] = useState<string | null>(null)
   const [castingDesignId, setCastingDesignId] = useState<string | null>(null)
   const [previewDesign, setPreviewDesign] = useState<DesignRow | null>(null)
@@ -95,7 +89,7 @@ const VotePage = () => {
   }, [fetchVotes])
 
   const limitForModality = useCallback(
-    (modality: string) =>
+    (modality: ModalityValue) =>
       settings[`votes_per_${modality}`] ?? settings[`votes_${modality}`] ?? settings.default ?? 1,
     [settings],
   )
@@ -113,7 +107,7 @@ const VotePage = () => {
 
   const modalityLabel = useMemo(() => getModalityLabel(selectedModality), [selectedModality])
 
-  const handleVote = async (designId: string, modality: string) => {
+  const handleVote = async (designId: string, modality: ModalityValue) => {
     if (!session) {
       setStatus('Sign in to vote')
       return
@@ -187,7 +181,7 @@ const VotePage = () => {
             <DesignCard
               key={design.id}
               title={design.filename}
-              meta={design.modality}
+              meta={getModalityLabel(design.modality)}
               imageUrl={getDesignPublicUrl(design.storage_path)}
               actionLabel={session ? (remainingVotes === 0 ? 'No votes left' : 'Vote now') : 'Sign in to vote'}
               disabled={!session || remainingVotes === 0 || castingDesignId === design.id}
