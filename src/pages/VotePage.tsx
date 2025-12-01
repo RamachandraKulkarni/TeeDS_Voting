@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import DesignCard from '../components/DesignCard'
 import ArrowIcon from '../components/ArrowIcon'
 import { getDesignPublicUrl, supabase } from '../api/supabaseClient'
@@ -18,6 +19,9 @@ type SettingsRow = {
   value: string
 }
 
+const VOTING_START_TIMESTAMP = new Date('2026-01-17T00:00:00-07:00').getTime()
+const VOTING_START_LABEL = 'January 17 at 12:00 AM MST'
+
 const VotePage = () => {
   const { session } = useSession()
   const [designs, setDesigns] = useState<DesignRow[]>([])
@@ -27,6 +31,7 @@ const VotePage = () => {
   const [status, setStatus] = useState<string | null>(null)
   const [castingDesignId, setCastingDesignId] = useState<string | null>(null)
   const [previewDesign, setPreviewDesign] = useState<DesignRow | null>(null)
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
 
   const fetchDesigns = useCallback(async () => {
     const { data, error } = await supabase
@@ -89,6 +94,11 @@ const VotePage = () => {
     fetchVotes()
   }, [fetchVotes])
 
+  useEffect(() => {
+    const interval = window.setInterval(() => setCurrentTime(Date.now()), 60 * 1000)
+    return () => window.clearInterval(interval)
+  }, [])
+
   const limitForModality = useCallback(
     (modality: ModalityValue) =>
       settings[`votes_per_${modality}`] ?? settings[`votes_${modality}`] ?? settings.default ?? 1,
@@ -148,8 +158,14 @@ const VotePage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const isVotingOpen = currentTime >= VOTING_START_TIMESTAMP
+  const votingLocked = !isVotingOpen
+
   return (
-    <section className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <section
+      className={`fade-in vote-page${isVotingOpen ? '' : ' vote-page--locked'}`}
+      style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+    >
       <div className="panel">
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
           <div>
@@ -165,6 +181,7 @@ const VotePage = () => {
               className={`segmented-option ${selectedModality === option.value ? 'active' : ''}`}
               type="button"
               onClick={() => setSelectedModality(option.value)}
+              disabled={votingLocked}
             >
               {option.label}
             </button>
@@ -183,8 +200,18 @@ const VotePage = () => {
               key={design.id}
               title={design.artwork_name ?? design.filename}
               imageUrl={getDesignPublicUrl(design.storage_path)}
-              actionLabel={session ? (remainingVotes === 0 ? 'No votes left' : 'Vote now') : 'Sign in to vote'}
-              disabled={!session || remainingVotes === 0 || castingDesignId === design.id}
+              actionLabel={
+                votingLocked
+                  ? 'Voting locked'
+                  : session
+                    ? remainingVotes === 0
+                      ? 'No votes left'
+                      : 'Vote now'
+                    : 'Sign in to vote'
+              }
+              disabled={
+                votingLocked || !session || remainingVotes === 0 || castingDesignId === design.id
+              }
               onAction={() => handleVote(design.id, design.modality)}
               onPreview={() => setPreviewDesign(design)}
             />
@@ -214,7 +241,7 @@ const VotePage = () => {
                   onClick={() => {
                     handleVote(previewDesign.id, previewDesign.modality)
                   }}
-                  disabled={castingDesignId === previewDesign.id || remainingVotes === 0}
+                  disabled={votingLocked || castingDesignId === previewDesign.id || remainingVotes === 0}
                 >
                   <span className="pill-button__knob">
                     <ArrowIcon />
@@ -226,6 +253,27 @@ const VotePage = () => {
               ) : (
                 <p className="notice" style={{ marginTop: 0 }}>Sign in to vote for this design.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {votingLocked && (
+        <div className="vote-locked-overlay" role="dialog" aria-modal="true" aria-live="assertive">
+          <div className="vote-locked-modal">
+            <p className="eyebrow">Voting locked</p>
+            <h2>Gallery opens on {VOTING_START_LABEL}</h2>
+            <p>
+              Voting isn&apos;t live yet. We&apos;ll automatically unlock the feed on voting day so everyone can browse entries and
+              cast ballots at the same time.
+            </p>
+            <div className="vote-locked-actions">
+              <Link to="/timeline" className="ghost-button">
+                View timeline
+              </Link>
+              <Link to="/rules" className="del-btn del-btn--static">
+                Read rules
+              </Link>
             </div>
           </div>
         </div>

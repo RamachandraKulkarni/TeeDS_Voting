@@ -26,6 +26,8 @@ const UploadPage = () => {
   const [designs, setDesigns] = useState<DesignRow[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [artworkName, setArtworkName] = useState('')
+  const [acceptedRelease, setAcceptedRelease] = useState(false)
+  const [isLicenseOpen, setIsLicenseOpen] = useState(false)
 
   const limitReached = designs.length >= 2
 
@@ -55,6 +57,10 @@ const UploadPage = () => {
   useEffect(() => {
     fetchDesigns()
   }, [fetchDesigns])
+
+  useEffect(() => {
+    setAcceptedRelease(false)
+  }, [session?.user.id])
 
   const handleDelete = async (designId: string, storagePath: string) => {
     if (!session) return
@@ -91,6 +97,11 @@ const UploadPage = () => {
 
     if (!session || !file) {
       setMessage('Missing file or session context')
+      return
+    }
+
+    if (!acceptedRelease) {
+      setMessage('You must accept the Artwork License & Release Agreement before uploading')
       return
     }
 
@@ -167,6 +178,20 @@ const UploadPage = () => {
         <p className="notice" style={{ marginTop: '0.5rem' }}>
           Your sign-in profile fills in the student details. We just need an artwork name and the correct modality here.
         </p>
+        <div className="consent-callout">
+          <p>
+            Every upload must include the TEE-DS Artwork License & Release Agreement.{' '}
+            <button type="button" className="text-link" onClick={() => setIsLicenseOpen(true)}>
+              Read the agreement
+            </button>
+            .
+          </p>
+          <ul>
+            <li>You keep ownership of your artwork at all times.</li>
+            <li>Finalists and winners grant ASU a non-exclusive license for shirts, showcases, and promo use.</li>
+            <li>You can revoke future use in writing, but printed or published pieces stay live.</li>
+          </ul>
+        </div>
         {lockedModality && (
           <p className="notice">
             Your uploads are locked to <strong>{getModalityLabel(lockedModality)}</strong>. Delete existing designs to switch modalities.
@@ -196,7 +221,20 @@ const UploadPage = () => {
             Design file (JPG/PNG)
             <input type="file" accept="image/*" required onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </label>
-          <button className="glow-button" type="submit" disabled={isUploading || !file || limitReached}>
+          <div className="consent-actions">
+            <button type="button" className="ghost-button" onClick={() => setIsLicenseOpen(true)}>
+              Review the agreement
+            </button>
+            <button
+              type="button"
+              className="glow-button consent-agree-button"
+              onClick={() => setAcceptedRelease(true)}
+              disabled={acceptedRelease}
+            >
+              {acceptedRelease ? 'Agreement accepted' : 'I agree to the release'}
+            </button>
+          </div>
+          <button className="glow-button" type="submit" disabled={isUploading || !file || limitReached || !acceptedRelease}>
             {limitReached ? 'Limit reached' : isUploading ? 'Uploading…' : 'Upload'}
           </button>
         </form>
@@ -239,6 +277,75 @@ const UploadPage = () => {
         )}
         </div>
       </section>
+
+      {isLicenseOpen && (
+        <div className="modal-overlay consent-overlay" role="dialog" aria-modal="true">
+          <div className="modal-content consent-modal">
+            <button className="ghost-button modal-close" type="button" onClick={() => setIsLicenseOpen(false)}>
+              Close
+            </button>
+            <p className="eyebrow">TEE-DS T-Shirt Contest</p>
+            <h3 style={{ marginTop: 0 }}>Artwork License & Release Agreement</h3>
+            <ol className="consent-list">
+              <li>
+                <h4>1. Ownership</h4>
+                <p>You retain every right, title, and copyright to your artwork. Ownership never transfers to ASU or TDS.</p>
+              </li>
+              <li>
+                <h4>2. License to use your artwork (finalists & winners)</h4>
+                <p>
+                  If your entry becomes a finalist or winner, you grant ASU and The Design School a non-exclusive, royalty-free,
+                  worldwide license to reproduce the artwork on shirts, merchandise, and promotional or educational materials;
+                  display it on ASU websites, marketing, and social media; and exhibit it in physical or virtual spaces tied to
+                  TEE-DS.
+                </p>
+                <p>This license is strictly for educational, promotional, and non-commercial purposes.</p>
+              </li>
+              <li>
+                <h4>3. No transfer of ownership</h4>
+                <p>You may keep selling, publishing, or licensing your artwork elsewhere without limitation.</p>
+              </li>
+              <li>
+                <h4>4. Modifications</h4>
+                <p>ASU may make minor technical adjustments necessary for production (resizing, color tweaks, background removal).</p>
+              </li>
+              <li>
+                <h4>5. Revocation</h4>
+                <p>
+                  You may revoke future use at any time with written notice. Products already printed or published cannot be pulled
+                  back, but ASU will stop future production after receiving your request.
+                </p>
+              </li>
+              <li>
+                <h4>6. Certification of original work</h4>
+                <p>You certify the submission is your original creation and does not infringe on anyone else’s rights.</p>
+              </li>
+              <li>
+                <h4>7. Consent to electronic signature</h4>
+                <p>Checking the consent box on the upload form counts as your electronic signature on this agreement.</p>
+              </li>
+            </ol>
+            <p style={{ color: 'var(--muted)', marginBottom: '1.25rem' }}>
+              Need a copy? Save or print this window before closing. Contact TEE-DS to revoke future use.
+            </p>
+            <div className="consent-modal__actions">
+              <button className="ghost-button" type="button" onClick={() => setIsLicenseOpen(false)}>
+                Close
+              </button>
+              <button
+                className="glow-button"
+                type="button"
+                onClick={() => {
+                  setAcceptedRelease(true)
+                  setIsLicenseOpen(false)
+                }}
+              >
+                I agree & continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
