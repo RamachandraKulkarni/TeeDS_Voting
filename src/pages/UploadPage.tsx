@@ -62,6 +62,19 @@ const UploadPage = () => {
     setAcceptedRelease(false)
   }, [session?.user.id])
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (!isLicenseOpen) {
+      document.body.style.overflow = ''
+      return
+    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isLicenseOpen])
+
   const handleDelete = async (designId: string, storagePath: string) => {
     if (!session) return
     const confirmed = typeof window === 'undefined' ? true : window.confirm('Delete this upload? The file will be removed permanently.')
@@ -222,9 +235,6 @@ const UploadPage = () => {
             <input type="file" accept="image/*" required onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </label>
           <div className="consent-actions">
-            <button type="button" className="ghost-button" onClick={() => setIsLicenseOpen(true)}>
-              Review the agreement
-            </button>
             <button
               type="button"
               className="glow-button consent-agree-button"
@@ -281,9 +291,6 @@ const UploadPage = () => {
       {isLicenseOpen && (
         <div className="modal-overlay consent-overlay" role="dialog" aria-modal="true">
           <div className="modal-content consent-modal">
-            <button className="ghost-button modal-close" type="button" onClick={() => setIsLicenseOpen(false)}>
-              Close
-            </button>
             <p className="eyebrow">TEE-DS T-Shirt Contest</p>
             <h3 style={{ marginTop: 0 }}>Artwork License & Release Agreement</h3>
             <ol className="consent-list">

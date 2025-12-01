@@ -263,8 +263,9 @@ a {
   flex-wrap: wrap;
   position: sticky;
   bottom: 0;
-  padding-top: 1rem;
-  background: var(--surface);
+  padding: 1rem 0 0.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--surface) 45%);
+  border-top: 1px solid var(--border);
 }
 
 .consent-list {
@@ -1472,7 +1473,6 @@ input::file-selector-button {
   grid-template-columns: 3fr 2fr;
   gap: 1.5rem;
   padding: 1.5rem;
-  padding-bottom: 4.5rem;
   position: relative;
 }
 
@@ -1598,9 +1598,8 @@ input::file-selector-button {
 
 .modal-close {
   position: absolute;
-  bottom: 1.25rem;
-  right: 1.25rem;
-  min-width: 120px;
+  top: 1rem;
+  right: 1rem;
 }
 
 .pill-button:hover {
