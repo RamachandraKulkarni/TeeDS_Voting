@@ -4,26 +4,28 @@
   font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #f8fafc;
-  background-color: #030712;
-  --bg: #030712;
-  --surface: #060916;
-  --panel: rgba(12, 18, 35, 0.9);
-  --card: #11182b;
-  --card-accent: #1f2942;
-  --text: #f8fafc;
-  --muted: #93a3c7;
-  --accent: #fcd34d;
-  --accent-2: #34d399;
-  --accent-3: #38bdf8;
-  --danger: #f87171;
-  --border: rgba(255, 255, 255, 0.12);
-  --glow: rgba(168, 85, 247, 0.6);
-  --asu-gold: #ffc627;
-  --asu-gold-bright: #ffe27a;
-  --asu-gold-muted: rgba(255, 198, 39, 0.18);
-  --asu-gold-shadow: rgba(255, 198, 39, 0.35);
-  --asu-ink: #1b1300;
+  color: #0f172a;
+  background-color: #fefcf7;
+  --bg: #fefcf7;
+  --surface: #ffffff;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --card-accent: #f5efe4;
+  --text: #111827;
+  --muted: #6b7280;
+  --accent: #fbbf24;
+  --accent-2: #2563eb;
+  --accent-3: #0ea5e9;
+  --danger: #dc2626;
+  --border: rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 25px 60px rgba(15, 23, 42, 0.08);
+  --glow: rgba(234, 179, 8, 0.35);
+  --asu-gold: #fbbf24;
+  --asu-gold-bright: #fde68a;
+  --asu-gold-muted: rgba(249, 216, 109, 0.4);
+  --asu-gold-shadow: rgba(249, 216, 109, 0.5);
+  --asu-ink: #1f1300;
+  --dot-color: rgba(17, 24, 39, 0.25);
 }
 
 *,
@@ -35,15 +37,29 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.2), transparent 55%),
-    radial-gradient(circle at 80% 0%, rgba(248, 113, 113, 0.18), transparent 40%),
-    linear-gradient(180deg, #04050c, #02030a 60%);
   color: var(--text);
+  background: var(--bg);
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: clamp(140px, 22vw, 280px);
+  background-image: radial-gradient(var(--dot-color) 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 #root {
   min-height: 100vh;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 a {
@@ -63,6 +79,22 @@ a {
   width: min(1100px, 100%);
   margin: 0 auto;
   padding-bottom: 4rem;
+}
+
+.panel,
+.header-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 1.75rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.panel.highlight,
+.header-panel.highlight {
+  border-width: 2px;
+  border-color: var(--asu-gold);
+  box-shadow: 0 35px 70px rgba(15, 23, 42, 0.12);
 }
 
 .eyebrow {
@@ -85,7 +117,7 @@ a {
 }
 
 .user-chip {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(15, 23, 42, 0.05);
   border-radius: 999px;
   padding: 0.45rem 1.25rem;
   min-width: 120px;
@@ -94,7 +126,7 @@ a {
   justify-content: center;
   align-items: center;
   font-size: 0.95rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
 }
 
 .header-bar {
@@ -126,12 +158,12 @@ a {
   position: absolute;
   top: calc(100% + 0.45rem);
   right: 0;
-  background: rgba(7, 11, 26, 0.98);
+  background: var(--surface);
   padding: 0.85rem;
   border-radius: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   width: min(240px, 80vw);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+  box-shadow: var(--shadow-soft);
   z-index: 10;
 }
 
@@ -153,7 +185,7 @@ a {
   border: none;
   border-radius: 0.85rem;
   padding: 0.65rem 1rem;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.06);
   color: var(--text);
   font-weight: 600;
   cursor: pointer;
@@ -162,7 +194,7 @@ a {
 
 .auth-dropdown button:hover,
 .auth-dropdown button:focus-visible {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.12);
 }
 
 .header-center {
@@ -170,7 +202,7 @@ a {
   text-align: center;
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text);
   letter-spacing: 0.05em;
 }
 
@@ -178,7 +210,7 @@ a {
   padding: 0.65rem 1.5rem;
   border-radius: 999px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.04);
   color: var(--muted);
   font-weight: 600;
   transition: all 200ms ease;
@@ -187,8 +219,8 @@ a {
 .nav-link.active,
 .nav-link:hover {
   color: var(--text);
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(15, 23, 42, 0.15);
+  background: rgba(15, 23, 42, 0.08);
 }
 
 .nav-link--action {
@@ -207,22 +239,22 @@ a {
 .account-trigger {
   min-width: 170px;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.05);
 }
 
 .account-menu {
   position: absolute;
   top: calc(100% + 0.35rem);
   right: 0;
-  background: rgba(6, 10, 24, 0.96);
+  background: var(--surface);
   padding: 0.45rem;
   min-width: 210px;
-  border-radius: 55% 55% 45% 45% / 80% 80% 35% 35%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 40px rgba(2, 6, 23, 0.55);
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-10px) scale(0.85);
+  transform: translateY(-10px) scale(0.92);
   transform-origin: top right;
   transition: opacity 240ms ease, transform 320ms cubic-bezier(0.16, 0.84, 0.44, 1.14);
 }
@@ -253,7 +285,7 @@ button {
   border: none;
   padding: 0.85rem 1.5rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   color: var(--text);
   cursor: pointer;
   transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
@@ -291,7 +323,7 @@ button:disabled {
 .ghost-button {
   border-radius: 999px;
   padding: 0.85rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--border);
   background: transparent;
   color: var(--text);
   font-weight: 600;
@@ -300,7 +332,7 @@ button:disabled {
 }
 
 .ghost-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.08);
 }
 
 button:disabled,
@@ -315,7 +347,7 @@ button:disabled,
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.05);
   padding: 0.4rem;
   border-radius: 999px;
   width: 100%;
@@ -333,7 +365,7 @@ button:disabled,
 }
 
 .segmented-option:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.08);
 }
 
 .segmented-option.active {
@@ -361,8 +393,8 @@ textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(2, 6, 23, 0.55);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--text);
   font-size: 1rem;
 }
@@ -371,7 +403,7 @@ input::file-selector-button {
   border: none;
   border-radius: 999px;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.08);
   color: var(--text);
   margin-right: 1rem;
   cursor: pointer;
@@ -385,11 +417,11 @@ input::file-selector-button {
 }
 
 .design-card {
-  background: linear-gradient(155deg, rgba(17, 24, 39, 0.96), rgba(30, 41, 59, 0.85));
+  background: linear-gradient(150deg, var(--surface), var(--card-accent));
   border-radius: 1.5rem;
   padding: 1.1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 18px 45px rgba(2, 6, 23, 0.65);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -397,10 +429,9 @@ input::file-selector-button {
   cursor: pointer;
   outline: none;
 }
-
 .design-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 35px 65px rgba(2, 6, 23, 0.75);
+  box-shadow: 0 35px 75px rgba(15, 23, 42, 0.18);
 }
 
 .design-card:focus-visible {
@@ -413,27 +444,8 @@ input::file-selector-button {
   aspect-ratio: 4 / 5;
   border-radius: 1.2rem;
   overflow: hidden;
-  background: #0f172a;
+  background: #f5f0e6;
 }
-
-.design-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 320ms ease;
-}
-
-.design-card:hover .design-media img {
-  transform: scale(1.03);
-}
-
-.design-meta {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
 
 
 .pill-button {
@@ -677,9 +689,9 @@ input::file-selector-button {
   position: relative;
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px dashed rgba(148, 163, 184, 0.6);
-  background: rgba(15, 23, 42, 0.9);
-  color: #cbd5f5;
+  border: 1px dashed rgba(249, 216, 109, 0.6);
+  background: rgba(249, 216, 109, 0.2);
+  color: var(--asu-ink);
   font-family: 'Roboto', system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -918,7 +930,7 @@ input::file-selector-button {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 6, 19, 0.85);
+  background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -928,10 +940,10 @@ input::file-selector-button {
 }
 
 .modal-content {
-  background: rgba(7, 11, 26, 0.95);
+  background: var(--surface);
   border-radius: 1.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 45px 85px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
   max-width: 960px;
   width: 100%;
   display: grid;
@@ -964,7 +976,7 @@ input::file-selector-button {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  color: #f8fafc;
+  color: var(--text);
 }
 
 .instructions-list li {
@@ -1003,7 +1015,7 @@ input::file-selector-button {
   align-items: flex-start;
   gap: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .user-list li:last-child {
@@ -1014,7 +1026,7 @@ input::file-selector-button {
 .modal-media {
   border-radius: 1.5rem;
   overflow: hidden;
-  background: #0f172a;
+  background: #f5f0e6;
 }
 
 .modal-media img {
@@ -1057,15 +1069,15 @@ input::file-selector-button {
 .notice {
   padding: 0.85rem 1.1rem;
   border-radius: 1rem;
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(37, 99, 235, 0.12);
   color: var(--text);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   margin: 1rem 0;
 }
 
 .notice.error {
   background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.35);
+  border-color: rgba(248, 113, 113, 0.28);
 }
 
 .stat-grid {
@@ -1078,9 +1090,9 @@ input::file-selector-button {
 .stat-card {
   padding: 1rem 1.25rem;
   border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.03);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
 }
 
 .stat-card strong {
@@ -1096,10 +1108,11 @@ input::file-selector-button {
 }
 
 .leaderboard-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface);
   border-radius: 1.5rem;
   padding: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
 }
 
 .leaderboard-card ol {
@@ -1125,7 +1138,7 @@ input::file-selector-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   font-weight: 600;
 }
 
