@@ -529,70 +529,148 @@ input::file-selector-button {
   padding: 0.55rem 1.2rem 0.55rem calc(var(--knob-size) + 1.2rem);
 }
 
-.delete-button {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(248, 113, 113, 0.12);
-  color: #fef2f2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transition: width 0.35s cubic-bezier(0.51, 0.026, 0.368, 1.016),
-    border-radius 0.35s cubic-bezier(0.51, 0.026, 0.368, 1.016),
-    background 0.35s ease;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
-
-.delete-button__icon {
-  width: 18px;
-  height: 18px;
+.del-btn {
   display: inline-flex;
-  transition: transform 0.35s cubic-bezier(0.51, 0.026, 0.368, 1.016);
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 0.85rem;
+  background: var(--danger);
+  color: #fff;
+  padding: 0.6rem 1rem 0.6rem 0.4rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.delete-button__icon svg path {
-  fill: currentColor;
-}
-
-.delete-button__label {
-  position: absolute;
-  left: 64px;
-  opacity: 0;
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  transform: translateY(-10px);
-  white-space: nowrap;
-}
-
-.delete-button:hover,
-.delete-button:focus-visible {
-  width: 150px;
-  border-radius: 52px;
-  background: #ef4444;
-}
-
-.delete-button:hover .delete-button__icon,
-.delete-button:focus-visible .delete-button__icon {
-  transform: translateY(6px);
-}
-
-.delete-button:hover .delete-button__label,
-.delete-button:focus-visible .delete-button__label {
-  opacity: 1;
-  transform: translateY(6px);
-}
-
-.delete-button:disabled {
+.del-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  width: 52px;
+}
+
+.del-btn:not(:disabled):hover,
+.del-btn:not(:disabled):focus-visible {
+  background: #fb7185;
+  transform: translateY(-1px);
+}
+
+.del-btn__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-left: -0.4rem;
+}
+
+.del-btn__icon-lid,
+.del-btn__icon-can,
+.del-btn__icon-can-fill,
+.del-btn__letter,
+.del-btn__letter-box {
+  animation: none;
+}
+
+.del-btn__icon-lid {
+  transform-origin: 12px 5px;
+}
+
+.del-btn__icon-can {
+  transform-origin: 12px 18px;
+}
+
+.del-btn__letters {
+  display: flex;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.del-btn__letter,
+.del-btn__letter-box {
+  display: inline-block;
+}
+
+.del-btn[data-running='false'] .del-btn__letters {
+  animation: delFadeIn 0.3s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+}
+
+.del-btn[data-running='true'] .del-btn__icon-lid,
+.del-btn[data-running='true'] .del-btn__icon-can,
+.del-btn[data-running='true'] .del-btn__icon-can-fill,
+.del-btn[data-running='true'] .del-btn__letter,
+.del-btn[data-running='true'] .del-btn__letter-box {
+  animation: delTrashLid 2s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+}
+
+.del-btn[data-running='true'] .del-btn__icon-can {
+  animation-name: delTrashCan;
+}
+
+.del-btn[data-running='true'] .del-btn__icon-can-fill {
+  animation-name: delTrashCanFill;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box {
+  animation-name: delLetterDrop;
+  animation-timing-function: cubic-bezier(0.77, 0, 1, 1);
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(1) .del-btn__letter {
+  animation-name: delLetter1;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(2),
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(2) .del-btn__letter {
+  animation-delay: 0.04s;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(2) .del-btn__letter {
+  animation-name: delLetter2;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(3),
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(3) .del-btn__letter {
+  animation-delay: 0.08s;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(3) .del-btn__letter {
+  animation-name: delLetter3;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(4),
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(4) .del-btn__letter {
+  animation-delay: 0.12s;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(4) .del-btn__letter {
+  animation-name: delLetter4;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(5),
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(5) .del-btn__letter {
+  animation-delay: 0.16s;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(5) .del-btn__letter {
+  animation-name: delLetter5;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(6),
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(6) .del-btn__letter {
+  animation-delay: 0.2s;
+}
+
+.del-btn[data-running='true'] .del-btn__letter-box:nth-child(6) .del-btn__letter {
+  animation-name: delLetter6;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 .scramble-button {
@@ -654,6 +732,186 @@ input::file-selector-button {
   }
   100% {
     transform: translateY(-120%);
+  }
+}
+
+@keyframes delFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes delTrashLid {
+  0%,
+  86%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33%,
+  46% {
+    animation-timing-function: cubic-bezier(0.77, 0, 1, 1);
+    transform: translate(-2px, -4px) rotate(-40deg);
+  }
+  54%,
+  70% {
+    animation-timing-function: linear;
+    transform: translate(0, 0) rotate(0);
+  }
+  62% {
+    animation-timing-function: linear;
+    transform: translate(0, -2px) rotate(9deg);
+  }
+  78% {
+    animation-timing-function: cubic-bezier(0, 0, 0.18, 1);
+    transform: translate(0, -1px) rotate(-6deg);
+  }
+}
+
+@keyframes delTrashCan {
+  0%,
+  86%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33%,
+  46% {
+    animation-timing-function: cubic-bezier(0.77, 0, 1, 1);
+    transform: translate(-8px, 3px) rotate(40deg);
+  }
+  54%,
+  70% {
+    animation-timing-function: linear;
+    transform: translate(0, 0) rotate(0);
+  }
+  62% {
+    animation-timing-function: linear;
+    transform: translate(-1px, 0) rotate(-4deg);
+  }
+  78% {
+    animation-timing-function: cubic-bezier(0, 0, 0.18, 1);
+    transform: translate(0, 0) rotate(2deg);
+  }
+}
+
+@keyframes delTrashCanFill {
+  0%,
+  25%,
+  100% {
+    y: 24px;
+  }
+  66.67%,
+  83.33% {
+    y: 12px;
+  }
+}
+
+@keyframes delLetterDrop {
+  0%,
+  33.33% {
+    transform: translate(0, 0);
+  }
+  41.67%,
+  100% {
+    transform: translate(0, 0.625em);
+  }
+}
+
+@keyframes delLetter1 {
+  from {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33% {
+    transform: translate(0.75em, 0) rotate(30deg) scale(1);
+  }
+  41.67% {
+    transform: translate(-2.375em, 0) rotate(-135deg) scale(0.75);
+  }
+  46%,
+  100% {
+    transform: translate(-2.375em, 0) rotate(-135deg) scale(0);
+  }
+}
+
+@keyframes delLetter2 {
+  from {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33% {
+    transform: translate(0.75em, 0) rotate(30deg) scale(1);
+  }
+  41.67% {
+    transform: translate(-3em, 0) rotate(-135deg) scale(0.75);
+  }
+  46%,
+  100% {
+    transform: translate(-3em, 0) rotate(-135deg) scale(0);
+  }
+}
+
+@keyframes delLetter3 {
+  from {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33% {
+    transform: translate(0.75em, 0) rotate(30deg) scale(1);
+  }
+  41.67% {
+    transform: translate(-3.375em, 0) rotate(-135deg) scale(0.75);
+  }
+  46%,
+  100% {
+    transform: translate(-3.375em, 0) rotate(-135deg) scale(0);
+  }
+}
+
+@keyframes delLetter4 {
+  from {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33% {
+    transform: translate(0.75em, 0) rotate(30deg) scale(1);
+  }
+  41.67% {
+    transform: translate(-3.75em, 0) rotate(-135deg) scale(0.75);
+  }
+  46%,
+  100% {
+    transform: translate(-3.75em, 0) rotate(-135deg) scale(0);
+  }
+}
+
+@keyframes delLetter5 {
+  from {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33% {
+    transform: translate(0.75em, 0) rotate(30deg) scale(1);
+  }
+  41.67% {
+    transform: translate(-4.125em, 0) rotate(-135deg) scale(0.75);
+  }
+  46%,
+  100% {
+    transform: translate(-4.125em, 0) rotate(-135deg) scale(0);
+  }
+}
+
+@keyframes delLetter6 {
+  from {
+    transform: translate(0, 0) rotate(0);
+  }
+  33.33% {
+    transform: translate(0.75em, 0) rotate(30deg) scale(1);
+  }
+  41.67% {
+    transform: translate(-4.75em, 0) rotate(-135deg) scale(0.75);
+  }
+  46%,
+  100% {
+    transform: translate(-4.75em, 0) rotate(-135deg) scale(0);
   }
 }
 

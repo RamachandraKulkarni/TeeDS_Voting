@@ -1,4 +1,5 @@
 import ArrowIcon from './ArrowIcon'
+import AnimatedDeleteButton from './AnimatedDeleteButton'
 
 type DesignCardProps = {
   title: string
@@ -11,15 +12,6 @@ type DesignCardProps = {
   onPreview?: () => void
   actionTone?: 'default' | 'delete'
 }
-
-const DeleteIcon = () => (
-  <svg viewBox="0 0 448 512" aria-hidden width="100%" height="100%">
-    <path
-      fill="currentColor"
-      d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32h384c17.7 0 32-14.3 32-32S433.7 32 416 32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32l21.2 339c1.6 25.3 22.6 45 47.9 45h198.8c25.3 0 46.3-19.7 47.9-45L416 128z"
-    />
-  </svg>
-)
 
 const DesignCard = ({
   title,
@@ -72,20 +64,13 @@ const DesignCard = ({
       </button>
     )}
     {actionLabel && actionTone === 'delete' && (
-      <button
-        className="delete-button"
-        onClick={(event) => {
-          event.stopPropagation()
+      <AnimatedDeleteButton
+        label={actionLabel}
+        disabled={disabled}
+        onDelete={() => {
           onAction?.()
         }}
-        disabled={disabled}
-        type="button"
-      >
-        <span className="delete-button__label">{actionLabel}</span>
-        <span className="delete-button__icon">
-          <DeleteIcon />
-        </span>
-      </button>
+      />
     )}
   </article>
 )
