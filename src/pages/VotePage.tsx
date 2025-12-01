@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
 import DesignCard from '../components/DesignCard'
 import ArrowIcon from '../components/ArrowIcon'
 import { getDesignPublicUrl, supabase } from '../api/supabaseClient'
@@ -21,6 +20,8 @@ type SettingsRow = {
 
 const VOTING_START_TIMESTAMP = new Date('2026-01-17T00:00:00-07:00').getTime()
 const VOTING_START_LABEL = 'January 17 at 12:00 AM MST'
+const CARD_COUNT_PRESETS = [3, 6, 9]
+const DEFAULT_CARDS_PER_VIEW = 6
 
 const VotePage = () => {
   const { session } = useSession()
@@ -32,6 +33,9 @@ const VotePage = () => {
   const [castingDesignId, setCastingDesignId] = useState<string | null>(null)
   const [previewDesign, setPreviewDesign] = useState<DesignRow | null>(null)
   const [currentTime, setCurrentTime] = useState(() => Date.now())
+  const [cardsPerView, setCardsPerView] = useState<number>(DEFAULT_CARDS_PER_VIEW)
+  const [currentPage, setCurrentPage] = useState(0)
+  const carouselRef = useRef<HTMLDivElement | null>(null)
 
   const fetchDesigns = useCallback(async () => {
     const { data, error } = await supabase
@@ -99,6 +103,14 @@ const VotePage = () => {
     return () => window.clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    setCurrentPage(0)
+    const viewport = carouselRef.current
+    if (viewport) {
+      viewport.scrollTo({ left: 0, behavior: 'auto' })
+    }
+  }, [cardsPerView, selectedModality])
+
   const limitForModality = useCallback(
     (modality: ModalityValue) =>
       settings[`votes_per_${modality}`] ?? settings[`votes_${modality}`] ?? settings.default ?? 1,
@@ -115,6 +127,33 @@ const VotePage = () => {
     () => designs.filter((design) => design.modality === selectedModality),
     [designs, selectedModality],
   )
+
+  const pagedDesigns = useMemo(() => {
+    if (cardsPerView <= 0) {
+      return []
+    }
+    const chunks: DesignRow[][] = []
+    for (let index = 0; index < visibleDesigns.length; index += cardsPerView) {
+      chunks.push(visibleDesigns.slice(index, index + cardsPerView))
+    }
+    return chunks
+  }, [cardsPerView, visibleDesigns])
+
+  const totalPages = pagedDesigns.length
+
+  useEffect(() => {
+    setCurrentPage((previous) => {
+      const maxIndex = Math.max(totalPages - 1, 0)
+      const clamped = Math.min(previous, maxIndex)
+      if (clamped !== previous && carouselRef.current) {
+        carouselRef.current.scrollTo({
+          left: clamped * carouselRef.current.clientWidth,
+          behavior: 'auto',
+        })
+      }
+      return clamped
+    })
+  }, [totalPages])
 
   const modalityLabel = useMemo(() => getModalityLabel(selectedModality), [selectedModality])
 
@@ -161,11 +200,47 @@ const VotePage = () => {
   const isVotingOpen = currentTime >= VOTING_START_TIMESTAMP
   const votingLocked = !isVotingOpen
 
+  const handleCardCountSelect = (count: number) => {
+    setCardsPerView(count)
+  }
+
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      if (!carouselRef.current || totalPages === 0) {
+        return
+      }
+      const maxIndex = Math.max(totalPages - 1, 0)
+      const clamped = Math.min(Math.max(nextPage, 0), maxIndex)
+      carouselRef.current.scrollTo({
+        left: clamped * carouselRef.current.clientWidth,
+        behavior: 'smooth',
+      })
+      setCurrentPage(clamped)
+    },
+    [totalPages],
+  )
+
+  const handleCarouselScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      if (totalPages <= 1) {
+        return
+      }
+      const viewport = event.currentTarget
+      const width = viewport.clientWidth
+      if (!width) {
+        return
+      }
+      const rawIndex = Math.round(viewport.scrollLeft / width)
+      const nextIndex = Math.min(Math.max(rawIndex, 0), totalPages - 1)
+      if (nextIndex !== currentPage) {
+        setCurrentPage(nextIndex)
+      }
+    },
+    [currentPage, totalPages],
+  )
+
   return (
-    <section
-      className={`fade-in vote-page${isVotingOpen ? '' : ' vote-page--locked'}`}
-      style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-    >
+    <section className="fade-in vote-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="panel">
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
           <div>
@@ -174,6 +249,11 @@ const VotePage = () => {
           </div>
           <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.95rem' }}>Remaining votes: <strong style={{ color: '#fff' }}>{remainingVotes}</strong></p>
         </div>
+        {votingLocked && (
+          <p className="notice" style={{ marginTop: '0.5rem' }}>
+            Voting opens on <strong>{VOTING_START_LABEL}</strong>. Browse the gallery now; buttons will enable once the window starts.
+          </p>
+        )}
         <div className="segmented-control" role="tablist" aria-label="Modality filter">
           {MODALITIES.map((option) => (
             <button
@@ -181,11 +261,36 @@ const VotePage = () => {
               className={`segmented-option ${selectedModality === option.value ? 'active' : ''}`}
               type="button"
               onClick={() => setSelectedModality(option.value)}
-              disabled={votingLocked}
             >
               {option.label}
             </button>
           ))}
+        </div>
+        <div className="card-count-toolbar">
+          <div className="card-count-control">
+            <span className="eyebrow" style={{ margin: 0 }}>Visible cards</span>
+            <div className="card-count-control__options" role="group" aria-label="Select number of cards per page">
+              {CARD_COUNT_PRESETS.map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  className={`card-count-option ${cardsPerView === count ? 'active' : ''}`}
+                  onClick={() => handleCardCountSelect(count)}
+                  aria-pressed={cardsPerView === count}
+                >
+                  {count}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="ghost-button card-count-reset"
+            onClick={() => setCardsPerView(DEFAULT_CARDS_PER_VIEW)}
+            disabled={cardsPerView === DEFAULT_CARDS_PER_VIEW}
+          >
+            Reset to default
+          </button>
         </div>
         {status && <p className={`notice ${status.toLowerCase().includes('fail') ? 'error' : ''}`}>{status}</p>}
         {!session && <p className="notice">Sign in to cast votes.</p>}
@@ -194,28 +299,78 @@ const VotePage = () => {
       {visibleDesigns.length === 0 ? (
         <p className="notice">Design uploads will appear here automatically.</p>
       ) : (
-        <div className="design-grid">
-          {visibleDesigns.map((design) => (
-            <DesignCard
-              key={design.id}
-              title={design.artwork_name ?? design.filename}
-              imageUrl={getDesignPublicUrl(design.storage_path)}
-              actionLabel={
-                votingLocked
-                  ? 'Voting locked'
-                  : session
-                    ? remainingVotes === 0
-                      ? 'No votes left'
-                      : 'Vote now'
-                    : 'Sign in to vote'
-              }
-              disabled={
-                votingLocked || !session || remainingVotes === 0 || castingDesignId === design.id
-              }
-              onAction={() => handleVote(design.id, design.modality)}
-              onPreview={() => setPreviewDesign(design)}
-            />
-          ))}
+        <div className="design-carousel">
+          <div
+            className="design-carousel__viewport"
+            ref={carouselRef}
+            onScroll={handleCarouselScroll}
+            aria-live="polite"
+          >
+            <div className="design-carousel__track">
+              {pagedDesigns.map((page, pageIndex) => (
+                <div
+                  key={`design-page-${pageIndex}`}
+                  className="design-carousel__page"
+                  aria-label={`Designs page ${pageIndex + 1}`}
+                >
+                  {page.map((design) => (
+                    <DesignCard
+                      key={design.id}
+                      title={design.artwork_name ?? design.filename}
+                      imageUrl={getDesignPublicUrl(design.storage_path)}
+                      actionLabel={
+                        votingLocked
+                          ? 'Voting locked'
+                          : session
+                            ? remainingVotes === 0
+                              ? 'No votes left'
+                              : 'Vote now'
+                            : 'Sign in to vote'
+                      }
+                      disabled={
+                        votingLocked || !session || remainingVotes === 0 || castingDesignId === design.id
+                      }
+                      onAction={() => handleVote(design.id, design.modality)}
+                      onPreview={() => setPreviewDesign(design)}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+          {totalPages > 1 && (
+            <div className="carousel-pagination">
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 0}
+              >
+                Previous
+              </button>
+              <div className="carousel-pagination__pages" role="tablist" aria-label="Carousel page selector">
+                {pagedDesigns.map((_, index) => (
+                  <button
+                    key={`pagination-${index}`}
+                    type="button"
+                    className={currentPage === index ? 'active' : ''}
+                    onClick={() => handlePageChange(index)}
+                    aria-current={currentPage === index ? 'true' : undefined}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -258,26 +413,6 @@ const VotePage = () => {
         </div>
       )}
 
-      {votingLocked && (
-        <div className="vote-locked-overlay" role="dialog" aria-modal="true" aria-live="assertive">
-          <div className="vote-locked-modal">
-            <p className="eyebrow">Voting locked</p>
-            <h2>Gallery opens on {VOTING_START_LABEL}</h2>
-            <p>
-              Voting isn&apos;t live yet. We&apos;ll automatically unlock the feed on voting day so everyone can browse entries and
-              cast ballots at the same time.
-            </p>
-            <div className="vote-locked-actions">
-              <Link to="/timeline" className="ghost-button">
-                View timeline
-              </Link>
-              <Link to="/rules" className="del-btn del-btn--static">
-                Read rules
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   )
 }

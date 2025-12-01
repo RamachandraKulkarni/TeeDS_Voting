@@ -30,9 +30,9 @@ const InfoCardContent = ({ variant }: { variant: InfoVariant }) => {
           <section>
             <p className="info-card__label">Event Fee</p>
             <ul className="info-card__list">
-              <li>$10 total printing event fee</li>
-              <li>$5 supports our screen-printing partner</li>
-              <li>$5 funds future Design School initiatives via the Generous Devils Club</li>
+              <li>Contest entry & design submissions are free</li>
+              <li>$10 covers the optional screen-printing mini lesson + winning shirt</li>
+              <li>That $10 splits evenly: $5 to our printing partner, $5 to Generous Devils Club</li>
             </ul>
           </section>
           <section>
@@ -80,7 +80,10 @@ const InfoCardContent = ({ variant }: { variant: InfoVariant }) => {
           <p className="info-card__label">Deadline</p>
           <p>&rarr; January 16, 2026 by 11:59 PM</p>
           <p className="info-card__label info-card__label--inline">Cost</p>
-          <p>FREE!!</p>
+          <div className="cost-highlight">
+            <span className="cost-highlight__arrow" aria-hidden="true" />
+            <p>FREE!!</p>
+          </div>
           <p className="info-card__label info-card__label--inline">Website</p>
           <p>&rarr; Posted today via Instagram!!</p>
         </section>

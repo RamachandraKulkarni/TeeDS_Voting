@@ -90,7 +90,7 @@ const Header = () => {
             ))}
           </nav>
           <div className="gd-countdown">
-            <span className="gd-countdown__label">Contest goes live Jan 24, 2026</span>
+            <span className="gd-countdown__label">Live printing event kicks off Jan 24, 2026</span>
             <strong className="gd-countdown__timer">{countdownLabel}</strong>
           </div>
           <div className="header-auth" ref={menuRef}>
