@@ -5,9 +5,9 @@ Full-stack Supabase + Vite starter for the TEEDS Design School showcase. The fro
 ## Features
 
 - OTP login restricted to `@asu.edu` addresses via Supabase Edge Functions + SMTP
-- Designers can upload up to two designs total, locked to a single modality (TDS Online Student or TDS In-Person Student) straight into the `designs` bucket
+- Designers can upload up to two designs total, locked to a single modality (TDS Online Student or TDS In-Person Student) straight into the `designs` bucket, and only enter the artwork title + modality because their profile metadata comes from the login flow
 - Anonymous voting gallery with configurable per-modality vote limits enforced by a Postgres RPC
-- Admin-only analytics dashboard backed by another Edge Function and Chart.js visualizations
+- Admin-only analytics dashboard backed by another Edge Function and Chart.js visualizations, plus a roster modal listing everyone who has signed in
 - Simple React Router app with protected routes and a lightweight localStorage-backed session context
 
 ## Setup

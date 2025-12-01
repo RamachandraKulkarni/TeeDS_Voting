@@ -18,6 +18,7 @@ type RequestBody = {
   modality?: string
   storagePath?: string
   submitterId?: string
+  artworkName?: string
 }
 
 Deno.serve(async (req) => {
@@ -30,12 +31,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { filename, modality, storagePath, submitterId } = (await req.json()) as RequestBody
+    const { filename, modality, storagePath, submitterId, artworkName } =
+      (await req.json()) as RequestBody
 
-    if (!filename || !modality || !storagePath || !submitterId) {
+    const normalizedArtworkName = artworkName?.trim()
+
+    if (!filename || !modality || !storagePath || !submitterId || !normalizedArtworkName) {
       return jsonResponse({
         ok: false,
-        message: 'filename, modality, storagePath, and submitterId are required',
+        message: 'filename, artworkName, modality, storagePath, and submitterId are required',
       }, 400)
     }
 
@@ -61,11 +65,32 @@ Deno.serve(async (req) => {
       }, 400)
     }
 
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('full_name, discipline, asu_id, email')
+      .eq('id', submitterId)
+      .maybeSingle()
+
+    if (userError) {
+      throw userError
+    }
+
+    if (!user) {
+      return jsonResponse({ ok: false, message: 'User metadata missing' }, 400)
+    }
+
+    const derivedAsurite = user.asu_id?.trim() || user.email?.split('@')[0] || null
+
     const { error } = await supabase.from('designs').insert({
       filename,
       modality,
       storage_path: storagePath,
       submitter_id: submitterId,
+      student_name: user.full_name ?? null,
+      artwork_name: normalizedArtworkName,
+      major: user.discipline ?? null,
+      year_level: null,
+      asurite: derivedAsurite,
     })
 
     if (error) {

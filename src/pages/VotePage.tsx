@@ -8,6 +8,7 @@ import { MODALITIES, ModalityValue, getModalityLabel } from '../constants/modali
 type DesignRow = {
   id: string
   filename: string
+  artwork_name: string | null
   modality: ModalityValue
   storage_path: string
 }
@@ -30,7 +31,7 @@ const VotePage = () => {
   const fetchDesigns = useCallback(async () => {
     const { data, error } = await supabase
       .from('designs')
-      .select('id, filename, modality, storage_path')
+      .select('id, filename, artwork_name, modality, storage_path')
       .order('submitted_at', { ascending: false })
 
     if (error) {
@@ -180,8 +181,7 @@ const VotePage = () => {
           {visibleDesigns.map((design) => (
             <DesignCard
               key={design.id}
-              title={design.filename}
-              meta={getModalityLabel(design.modality)}
+              title={design.artwork_name ?? design.filename}
               imageUrl={getDesignPublicUrl(design.storage_path)}
               actionLabel={session ? (remainingVotes === 0 ? 'No votes left' : 'Vote now') : 'Sign in to vote'}
               disabled={!session || remainingVotes === 0 || castingDesignId === design.id}
@@ -203,11 +203,10 @@ const VotePage = () => {
               Close
             </button>
             <div className="modal-media">
-              <img src={getDesignPublicUrl(previewDesign.storage_path)} alt={previewDesign.filename} />
+              <img src={getDesignPublicUrl(previewDesign.storage_path)} alt={previewDesign.artwork_name ?? previewDesign.filename} />
             </div>
             <div className="modal-meta">
-              <p className="eyebrow" style={{ marginBottom: '0.4rem' }}>{getModalityLabel(previewDesign.modality)}</p>
-              <h3 style={{ margin: '0 0 0.35rem 0' }}>{previewDesign.filename}</h3>
+              <h3 style={{ margin: '0 0 0.35rem 0' }}>{previewDesign.artwork_name ?? previewDesign.filename}</h3>
               {session ? (
                 <button
                   className="pill-button"

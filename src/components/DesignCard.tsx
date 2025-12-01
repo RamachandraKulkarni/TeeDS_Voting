@@ -48,10 +48,12 @@ const DesignCard = ({
     <div className="design-media">
       <img src={imageUrl} alt={title} loading="lazy" />
     </div>
-    <div className="design-meta">
-      <span>{meta ?? 'Design drop'}</span>
-      {footer}
-    </div>
+    {(meta || footer) && (
+      <div className="design-meta">
+        {meta && <span>{meta}</span>}
+        {footer}
+      </div>
+    )}
     <h3 style={{ margin: 0 }}>{title}</h3>
     {actionLabel && actionTone === 'default' && (
       <button

@@ -22,13 +22,20 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const [{ data: designRows, error: designsError }, { data: voteRows, error: votesError }] = await Promise.all([
-      supabase.from('designs').select('id, filename, modality'),
+    const [
+      { data: designRows, error: designsError },
+      { data: voteRows, error: votesError },
+      { data: userRows, error: usersError },
+    ] = await Promise.all([
+      supabase
+        .from('designs')
+        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality'),
       supabase.from('votes').select('design_id, modality'),
+      supabase.from('users').select('id, email, full_name, asu_id, discipline, created_at').order('created_at', { ascending: false }),
     ])
 
-    if (designsError || votesError) {
-      throw designsError ?? votesError
+    if (designsError || votesError || usersError) {
+      throw designsError ?? votesError ?? usersError
     }
 
     const totalsMap = new Map<string, { modality: string; designs: number; votes: number }>()
@@ -38,9 +45,28 @@ Deno.serve(async (req: Request) => {
       totalsMap.set(row.modality, entry)
     })
 
-    const designLookup = new Map<string, { filename: string; modality: string }>()
+    const designLookup = new Map<
+      string,
+      {
+        filename: string
+        artwork_name: string | null
+        student_name: string | null
+        major: string | null
+        year_level: string | null
+        asurite: string | null
+        modality: string
+      }
+    >()
     designRows?.forEach((row) => {
-      designLookup.set(row.id, { filename: row.filename, modality: row.modality })
+      designLookup.set(row.id, {
+        filename: row.filename,
+        artwork_name: row.artwork_name ?? null,
+        student_name: row.student_name ?? null,
+        major: row.major ?? null,
+        year_level: row.year_level ?? null,
+        asurite: row.asurite ?? null,
+        modality: row.modality,
+      })
     })
 
     voteRows?.forEach((vote) => {
@@ -49,13 +75,31 @@ Deno.serve(async (req: Request) => {
       totalsMap.set(vote.modality, entry)
     })
 
-    const leaderboardMap = new Map<string, { design_id: string; filename: string; modality: string; total_votes: number }>()
+    const leaderboardMap = new Map<
+      string,
+      {
+        design_id: string
+        filename: string
+        artwork_name: string | null
+        student_name: string | null
+        major: string | null
+        year_level: string | null
+        asurite: string | null
+        modality: string
+        total_votes: number
+      }
+    >()
     voteRows?.forEach((vote) => {
       const meta = designLookup.get(vote.design_id)
       if (!meta) return
       const entry = leaderboardMap.get(vote.design_id) ?? {
         design_id: vote.design_id,
         filename: meta.filename,
+        artwork_name: meta.artwork_name,
+        student_name: meta.student_name,
+        major: meta.major,
+        year_level: meta.year_level,
+        asurite: meta.asurite,
         modality: meta.modality,
         total_votes: 0,
       }
@@ -66,7 +110,16 @@ Deno.serve(async (req: Request) => {
     const totals = Array.from(totalsMap.values()).sort((a, b) => a.modality.localeCompare(b.modality))
     const leaderboard = Array.from(leaderboardMap.values()).sort((a, b) => b.total_votes - a.total_votes).slice(0, 5)
 
-    return jsonResponse({ ok: true, totals, leaderboard })
+    const users = (userRows ?? []).map((user) => ({
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      asu_id: user.asu_id,
+      discipline: user.discipline,
+      created_at: user.created_at,
+    }))
+
+    return jsonResponse({ ok: true, totals, leaderboard, users })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)

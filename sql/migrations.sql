@@ -33,11 +33,22 @@ create table if not exists public.designs (
   filename text not null,
   storage_path text not null,
   modality text not null,
+  student_name text,
+  artwork_name text,
+  major text,
+  year_level text,
+  asurite text,
   submitter_id uuid references public.users(id) on delete set null,
   submitter_hash text,
   submitted_at timestamptz default timezone('utc', now())
 );
 create index if not exists designs_modality_idx on public.designs (modality);
+
+alter table public.designs add column if not exists student_name text;
+alter table public.designs add column if not exists artwork_name text;
+alter table public.designs add column if not exists major text;
+alter table public.designs add column if not exists year_level text;
+alter table public.designs add column if not exists asurite text;
 
 -- Votes table
 create table if not exists public.votes (

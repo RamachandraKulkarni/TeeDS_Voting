@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase, getDesignPublicUrl, invokeEdgeFunction } from '../api/supabaseClient'
 import { useSession } from '../session'
 import DesignCard from '../components/DesignCard'
+import UploadInstructionsModal from '../components/UploadInstructionsModal'
 import { MODALITIES, ModalityValue, getModalityLabel } from '../constants/modalities'
 
 type DesignRow = {
@@ -9,6 +10,11 @@ type DesignRow = {
   filename: string
   modality: ModalityValue
   storage_path: string
+  student_name: string | null
+  artwork_name: string | null
+  major: string | null
+  year_level: string | null
+  asurite: string | null
 }
 
 const UploadPage = () => {
@@ -19,6 +25,7 @@ const UploadPage = () => {
   const [message, setMessage] = useState<string | null>(null)
   const [designs, setDesigns] = useState<DesignRow[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [artworkName, setArtworkName] = useState('')
 
   const limitReached = designs.length >= 2
 
@@ -33,7 +40,7 @@ const UploadPage = () => {
     if (!session) return
     const { data, error } = await supabase
       .from('designs')
-      .select('id, filename, modality, storage_path')
+      .select('id, filename, modality, storage_path, student_name, artwork_name, major, year_level, asurite')
       .eq('submitter_id', session.user.id)
       .order('submitted_at', { ascending: false })
 
@@ -87,6 +94,13 @@ const UploadPage = () => {
       return
     }
 
+    const trimmedArtworkName = artworkName.trim()
+
+    if (!trimmedArtworkName) {
+      setMessage('Add an artwork name so we can label your submission')
+      return
+    }
+
     if (limitReached) {
       setMessage('Limit reached for this modality (2 designs max)')
       return
@@ -112,6 +126,7 @@ const UploadPage = () => {
           modality: selectedModality,
           storagePath,
           submitterId: session.user.id,
+          artworkName: trimmedArtworkName,
         },
       )
 
@@ -120,6 +135,7 @@ const UploadPage = () => {
       }
 
       setFile(null)
+      setArtworkName('')
       setMessage('Design uploaded! It may take a second to appear in the gallery.')
       fetchDesigns()
     } catch (error) {
@@ -139,12 +155,17 @@ const UploadPage = () => {
   }
 
   return (
-    <section className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div className="panel highlight">
+    <>
+      <UploadInstructionsModal />
+      <section className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="panel highlight">
         <p className="eyebrow">Creator console</p>
         <h2 style={{ marginTop: 0 }}>Upload designs</h2>
         <p className="header-summary">
           Each modality allows two uploads per designer. Files go straight into the Supabase storage bucket named <code>designs</code>.
+        </p>
+        <p className="notice" style={{ marginTop: '0.5rem' }}>
+          Your sign-in profile fills in the student details. We just need an artwork name and the correct modality here.
         </p>
         {lockedModality && (
           <p className="notice">
@@ -153,6 +174,10 @@ const UploadPage = () => {
         )}
         {message && <p className={`notice ${message.toLowerCase().includes('fail') ? 'error' : ''}`}>{message}</p>}
         <form onSubmit={handleUpload}>
+          <label>
+            Artwork name
+            <input type="text" required value={artworkName} onChange={(event) => setArtworkName(event.target.value)} placeholder="Phoenix Bloom" />
+          </label>
           <label>
             Modality
             <select
@@ -175,9 +200,9 @@ const UploadPage = () => {
             {limitReached ? 'Limit reached' : isUploading ? 'Uploading…' : 'Upload'}
           </button>
         </form>
-      </div>
+        </div>
 
-      <div className="panel">
+        <div className="panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
           <div>
             <p className="eyebrow">Library</p>
@@ -189,22 +214,32 @@ const UploadPage = () => {
           <p className="notice">No uploads yet.</p>
         ) : (
           <div className="design-grid">
-            {designs.map((design) => (
-              <DesignCard
-                key={design.id}
-                title={design.filename}
-                meta={getModalityLabel(design.modality)}
-                imageUrl={getDesignPublicUrl(design.storage_path)}
-                actionLabel={deletingId === design.id ? 'Deleting…' : 'Delete'}
-                onAction={() => handleDelete(design.id, design.storage_path)}
-                disabled={deletingId === design.id}
-                actionTone="delete"
-              />
-            ))}
+            {designs.map((design) => {
+              const metaLine = [design.student_name, getModalityLabel(design.modality)].filter(Boolean).join(' · ')
+              const detailLine = [design.major, design.year_level, design.asurite].filter(Boolean).join(' · ')
+              return (
+                <DesignCard
+                  key={design.id}
+                  title={design.artwork_name ?? design.filename}
+                  meta={metaLine || undefined}
+                  footer={
+                    detailLine ? (
+                      <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{detailLine}</span>
+                    ) : undefined
+                  }
+                  imageUrl={getDesignPublicUrl(design.storage_path)}
+                  actionLabel={deletingId === design.id ? 'Deleting…' : 'Delete'}
+                  onAction={() => handleDelete(design.id, design.storage_path)}
+                  disabled={deletingId === design.id}
+                  actionTone="delete"
+                />
+              )
+            })}
           </div>
         )}
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   )
 }
 

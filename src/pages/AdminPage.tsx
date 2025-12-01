@@ -16,7 +16,25 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip)
 
 type AnalyticsResponse = {
   totals: Array<{ modality: string; designs: number; votes: number }>
-  leaderboard: Array<{ design_id: string; filename: string; modality: string; total_votes: number }>
+  leaderboard: Array<{
+    design_id: string
+    filename: string
+    artwork_name: string | null
+    student_name: string | null
+    major: string | null
+    year_level: string | null
+    asurite: string | null
+    modality: string
+    total_votes: number
+  }>
+  users: Array<{
+    id: string
+    email: string | null
+    full_name: string | null
+    asu_id: string | null
+    discipline: string | null
+    created_at: string | null
+  }>
 }
 
 const ALLOWED_ADMINS = ['rkulka43@asu.edu', 'arobin13@asu.edu']
@@ -25,6 +43,7 @@ const AdminPage = () => {
   const { session } = useSession()
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null)
   const [status, setStatus] = useState<string | null>(null)
+  const [showUsersModal, setShowUsersModal] = useState(false)
 
   const adminEmail = session?.user.email?.toLowerCase() ?? ''
   const isAllowed = Boolean(adminEmail && ALLOWED_ADMINS.includes(adminEmail))
@@ -124,6 +143,12 @@ const AdminPage = () => {
           Signed in as {session.user.fullName ?? session.user.email}
         </div>
 
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button className="ghost-button" type="button" onClick={() => setShowUsersModal(true)}>
+            View signed-in users
+          </button>
+        </div>
+
         <div className="stat-grid">
           {analytics?.totals.map((row) => (
             <div key={row.modality} className="stat-card">
@@ -152,7 +177,15 @@ const AdminPage = () => {
                     <li key={row.design_id} className="leaderboard-row">
                       <span className="rank-pill">#{index + 1}</span>
                       <div style={{ flexGrow: 1 }}>
-                        <strong style={{ display: 'block' }}>{row.filename}</strong>
+                        <strong style={{ display: 'block' }}>{row.artwork_name ?? row.filename}</strong>
+                        <small style={{ color: 'var(--muted)' }}>{row.student_name ?? 'Unknown student'}</small>
+                        {(() => {
+                          const line = [row.major, row.year_level, row.asurite].filter(Boolean).join(' · ')
+                          if (!line) return null
+                          return (
+                            <div style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{line}</div>
+                          )
+                        })()}
                         <small style={{ color: 'var(--muted)' }}>{row.total_votes} votes</small>
                       </div>
                     </li>
@@ -160,6 +193,40 @@ const AdminPage = () => {
                 </ol>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showUsersModal && analytics && (
+        <div className="modal-overlay instructions-overlay" role="dialog" aria-modal="true">
+          <div className="modal-content instructions-modal user-modal">
+            <button className="ghost-button modal-close" type="button" onClick={() => setShowUsersModal(false)}>
+              Close
+            </button>
+            <p className="eyebrow">Signed-in roster</p>
+            <h3 style={{ marginTop: 0 }}>Registered users</h3>
+            <p className="header-summary" style={{ marginBottom: '1rem' }}>
+              Pulled from the Supabase <code>users</code> table. Sorted by newest.
+            </p>
+            {analytics.users.length === 0 ? (
+              <p className="notice">No users have signed in yet.</p>
+            ) : (
+              <ul className="user-list">
+                {analytics.users.map((user) => (
+                  <li key={user.id}>
+                    <div>
+                      <strong>{user.full_name ?? 'Unknown student'}</strong>
+                      <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{user.email ?? 'No email on file'}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div>{user.asu_id ?? '—'}</div>
+                      <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{user.discipline ?? 'Discipline n/a'}</div>
+                      <div style={{ color: 'var(--muted)', fontSize: '0.75rem' }}>{user.created_at ? new Date(user.created_at).toLocaleString() : ''}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       )}
