@@ -247,7 +247,9 @@ const VotePage = () => {
             <p className="eyebrow">Live gallery · {modalityLabel}</p>
             <h2 style={{ marginTop: 0, marginBottom: '0.35rem' }}>Vote anonymously</h2>
           </div>
-          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.95rem' }}>Remaining votes: <strong style={{ color: '#fff' }}>{remainingVotes}</strong></p>
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.95rem' }}>
+            Remaining votes: <strong style={{ color: '#000' }}>{remainingVotes}</strong>
+          </p>
         </div>
         {votingLocked && (
           <p className="notice" style={{ marginTop: '0.5rem' }}>
