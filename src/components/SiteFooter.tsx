@@ -30,29 +30,29 @@ const SiteFooter = ({ onOpen }: SiteFooterProps) => (
     <div className="site-footer__powered">
       <p className="site-footer__powered-label">Powered by</p>
       <div className="site-footer__logos">
-        <div className="site-footer__logo-card site-footer__logo-card--image">
-          <img src={asuTdsLogo} alt="The Design School at ASU logo" loading="lazy" />
-          <span className="site-footer__logo-tooltip" role="tooltip">
-            Arizona State University
-          </span>
-        </div>
-        <div className="site-footer__logo-card site-footer__logo-card--image">
-          <img src={generousDevilsLogo} alt="Generous Devils logo" loading="lazy" />
-          <span className="site-footer__logo-tooltip" role="tooltip">
-            Materials program @ ASU
-          </span>
-        </div>
         <a
           className="site-footer__logo-card site-footer__logo-card--image site-footer__logo-card--link"
           href="https://www.there-space.com/"
           target="_blank"
           rel="noreferrer"
         >
+          <img src={asuTdsLogo} alt="The Design School at ASU logo" loading="lazy" />
+          <span className="site-footer__logo-tooltip" role="tooltip">
+            Arizona State University
+          </span>
+        </a>
+        <div className="site-footer__logo-card site-footer__logo-card--image">
+          <img src={generousDevilsLogo} alt="Generous Devils logo" loading="lazy" />
+          <span className="site-footer__logo-tooltip" role="tooltip">
+            Materials program @ ASU
+          </span>
+        </div>
+        <div className="site-footer__logo-card site-footer__logo-card--image">
           <img src={thereSpaceLogo} alt="There Space logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
             Arizona&apos;s only membership-based screen print studio.
           </span>
-        </a>
+        </div>
         <div className="site-footer__logo-card site-footer__logo-card--image site-footer__logo-card--ram">
           <img src={ramSystemLogo} alt="RAM system logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
