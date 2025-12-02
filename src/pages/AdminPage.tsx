@@ -14,7 +14,17 @@ import { getModalityLabel } from '../constants/modalities'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip)
 
+type ContactMessage = {
+  id: string
+  sender_name: string
+  sender_email: string
+  topic: string | null
+  message: string
+  created_at: string | null
+}
+
 type AnalyticsResponse = {
+  ok: boolean
   totals: Array<{ modality: string; designs: number; votes: number }>
   leaderboard: Array<{
     design_id: string
@@ -35,6 +45,7 @@ type AnalyticsResponse = {
     discipline: string | null
     created_at: string | null
   }>
+  contacts: ContactMessage[]
 }
 
 const ALLOWED_ADMINS = ['rkulka43@asu.edu', 'arobin13@asu.edu']
@@ -194,6 +205,39 @@ const AdminPage = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {analytics && (
+        <div className="panel">
+          <p className="eyebrow">Contact inbox</p>
+          <h3 style={{ marginTop: 0 }}>Messages from the site</h3>
+          <p className="header-summary" style={{ marginBottom: '1rem' }}>
+            Captures inquiries submitted through the Contact Us form in the footer.
+          </p>
+          {analytics.contacts.length === 0 ? (
+            <p className="notice">No messages yet.</p>
+          ) : (
+            <ul className="contact-list">
+              {analytics.contacts.map((message) => (
+                <li key={message.id} className="contact-card">
+                  <div className="contact-card__header">
+                    <div>
+                      <strong>{message.sender_name}</strong>
+                      <div style={{ color: 'var(--muted)' }}>{message.sender_email}</div>
+                    </div>
+                    <time dateTime={message.created_at ?? undefined}>
+                      {message.created_at ? new Date(message.created_at).toLocaleString() : '—'}
+                    </time>
+                  </div>
+                  {message.topic && (
+                    <div className="contact-card__topic">{message.topic}</div>
+                  )}
+                  <p className="contact-card__body">{message.message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

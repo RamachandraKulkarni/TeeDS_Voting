@@ -26,16 +26,25 @@ Deno.serve(async (req: Request) => {
       { data: designRows, error: designsError },
       { data: voteRows, error: votesError },
       { data: userRows, error: usersError },
+      { data: contactRows, error: contactsError },
     ] = await Promise.all([
       supabase
         .from('designs')
         .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality'),
       supabase.from('votes').select('design_id, modality'),
-      supabase.from('users').select('id, email, full_name, asu_id, discipline, created_at').order('created_at', { ascending: false }),
+      supabase
+        .from('users')
+        .select('id, email, full_name, asu_id, discipline, created_at')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('contact_messages')
+        .select('id, sender_name, sender_email, topic, message, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50),
     ])
 
-    if (designsError || votesError || usersError) {
-      throw designsError ?? votesError ?? usersError
+    if (designsError || votesError || usersError || contactsError) {
+      throw designsError ?? votesError ?? usersError ?? contactsError
     }
 
     const totalsMap = new Map<string, { modality: string; designs: number; votes: number }>()
@@ -119,7 +128,16 @@ Deno.serve(async (req: Request) => {
       created_at: user.created_at,
     }))
 
-    return jsonResponse({ ok: true, totals, leaderboard, users })
+    const contacts = (contactRows ?? []).map((row) => ({
+      id: row.id,
+      sender_name: row.sender_name,
+      sender_email: row.sender_email,
+      topic: row.topic,
+      message: row.message,
+      created_at: row.created_at,
+    }))
+
+    return jsonResponse({ ok: true, totals, leaderboard, users, contacts })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)

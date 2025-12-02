@@ -5,6 +5,7 @@ import InstructionsModal from './components/InstructionsModal'
 import LoadingSplash from './components/LoadingSplash'
 import PrivateRoute from './components/PrivateRoute'
 import SiteFooter from './components/SiteFooter'
+import ContactModal from './components/ContactModal'
 import { InfoModal, IntroInfoStage, type InfoVariant } from './components/InfoPages'
 import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
@@ -19,6 +20,7 @@ function App() {
 	type ExperienceStage = 'splash' | 'contest' | 'howto' | 'app'
 	const [stage, setStage] = useState<ExperienceStage>('splash')
 	const [infoModal, setInfoModal] = useState<InfoVariant | null>(null)
+	const [isContactOpen, setIsContactOpen] = useState(false)
 
 	const gateScreen = useMemo(() => {
 		switch (stage) {
@@ -80,8 +82,9 @@ function App() {
 							<Route path="*" element={<Navigate to="/vote" replace />} />
 						</Routes>
 						</main>
-						<SiteFooter onOpen={(variant) => setInfoModal(variant)} />
+						<SiteFooter onOpen={(variant) => setInfoModal(variant)} onContact={() => setIsContactOpen(true)} />
 						{infoModal && <InfoModal variant={infoModal} onClose={() => setInfoModal(null)} />}
+						{isContactOpen && <ContactModal onClose={() => setIsContactOpen(false)} />}
 					</div>
 			)}
 		</SessionProvider>

@@ -84,6 +84,26 @@ insert into public.admins (email) values
   ('arobin13@asu.edu')
 on conflict (email) do nothing;
 
+-- Contact messages collected from the site footer form
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_name text not null,
+  sender_email text not null,
+  topic text,
+  message text not null,
+  created_at timestamptz default timezone('utc', now())
+);
+
+alter table public.contact_messages enable row level security;
+
+drop policy if exists contact_messages_service_access on public.contact_messages;
+
+create policy contact_messages_service_access on public.contact_messages
+  for all
+  to service_role
+  using (true)
+  with check (true);
+
 -- Submitter hashing is now handled in the edge function; keep column for analytics only.
 drop trigger if exists trg_designs_hash on public.designs;
 drop function if exists public.populate_submitter_hash();
