@@ -28,9 +28,12 @@ const InfoCardContent = ({ variant }: { variant: InfoVariant }) => {
         </div>
         <div className="info-card__grid info-card__grid--contest">
           <section>
-            <p className="info-card__label">Event Fee</p>
+            <p className="info-card__label">Submissions</p>
             <ul className="info-card__list">
               <li>Contest entry & design submissions are free</li>
+            </ul>
+            <p className="info-card__label">Event Fee</p>
+            <ul className="info-card__list">
               <li>$10 covers the optional screen-printing mini lesson + winning shirt</li>
               <li>That $10 splits evenly: $5 to our printing partner, $5 to Generous Devils Club</li>
             </ul>
