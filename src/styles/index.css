@@ -372,9 +372,12 @@ a {
 }
 
 .site-footer__logos {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
   gap: 0.75rem;
+  width: 100%;
+  justify-items: center;
+  justify-content: center;
 }
 
 .site-footer__logo-card {
@@ -387,6 +390,83 @@ a {
   text-align: center;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.8);
+  width: 100%;
+  height: 100%;
+  max-width: 240px;
+  position: relative;
+}
+
+.site-footer__logo-card--image {
+  border-style: solid;
+  color: var(--text);
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08);
+  text-align: center;
+  padding: 1rem;
+}
+
+.site-footer__logo-card--link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.site-footer__logo-card--link:focus-visible {
+  outline: 2px solid var(--asu-gold);
+  outline-offset: 4px;
+}
+
+.site-footer__logo-card--image img {
+  width: auto;
+  height: auto;
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+.site-footer__logo-caption {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-footer__logo-tooltip {
+  position: absolute;
+  inset: auto 0 0;
+  transform: translateY(110%);
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+  width: max-content;
+  max-width: 90%;
+  left: 50%;
+  translate: -50% 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.site-footer__logo-card:hover .site-footer__logo-tooltip,
+.site-footer__logo-card:focus-within .site-footer__logo-tooltip {
+  opacity: 1;
+  transform: translateY(90%);
 }
 
 .loading-splash {
