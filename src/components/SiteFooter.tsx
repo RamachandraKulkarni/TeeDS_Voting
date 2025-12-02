@@ -30,17 +30,12 @@ const SiteFooter = ({ onOpen }: SiteFooterProps) => (
     <div className="site-footer__powered">
       <p className="site-footer__powered-label">Powered by</p>
       <div className="site-footer__logos">
-        <a
-          className="site-footer__logo-card site-footer__logo-card--image site-footer__logo-card--link"
-          href="https://www.there-space.com/"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <div className="site-footer__logo-card site-footer__logo-card--image">
           <img src={asuTdsLogo} alt="The Design School at ASU logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
             Arizona State University
           </span>
-        </a>
+        </div>
         <div className="site-footer__logo-card site-footer__logo-card--image">
           <img src={generousDevilsLogo} alt="Generous Devils logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
