@@ -36,27 +36,27 @@ const SiteFooter = ({ onOpen }: SiteFooterProps) => (
           target="_blank"
           rel="noreferrer"
         >
-          <img src={thereSpaceLogo} alt="There Space logo" loading="lazy" />
+          <div className="site-footer__logo-card site-footer__logo-card--image">
+          <img src={asuTdsLogo} alt="The Design School at ASU logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
-            Arizona&apos;s only membership-based screen print studio.
+            Arizona State University
           </span>
-        </a>
+        </div>
         <div className="site-footer__logo-card site-footer__logo-card--image">
           <img src={generousDevilsLogo} alt="Generous Devils logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
             Materials program @ ASU
           </span>
         </div>
+          <img src={thereSpaceLogo} alt="There Space logo" loading="lazy" />
+          <span className="site-footer__logo-tooltip" role="tooltip">
+            Arizona&apos;s only membership-based screen print studio.
+          </span>
+        </a>
         <div className="site-footer__logo-card site-footer__logo-card--image site-footer__logo-card--ram">
           <img src={ramSystemLogo} alt="RAM system logo" loading="lazy" />
           <span className="site-footer__logo-tooltip" role="tooltip">
             Recycle · Allocate · Maintain
-          </span>
-        </div>
-        <div className="site-footer__logo-card site-footer__logo-card--image">
-          <img src={asuTdsLogo} alt="The Design School at ASU logo" loading="lazy" />
-          <span className="site-footer__logo-tooltip" role="tooltip">
-            Arizona State University
           </span>
         </div>
       </div>
