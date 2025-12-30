@@ -383,8 +383,13 @@ const VotePage = () => {
           }
         }}>
           <div className="modal-content">
-            <button className="ghost-button modal-close" type="button" onClick={() => setPreviewDesign(null)}>
-              Close
+            <button
+              aria-label="Close preview"
+              className="ghost-button modal-close"
+              type="button"
+              onClick={() => setPreviewDesign(null)}
+            >
+              <span aria-hidden="true" className="modal-close__icon" />
             </button>
             <div className="modal-media">
               <img src={getDesignPublicUrl(previewDesign.storage_path)} alt={previewDesign.artwork_name ?? previewDesign.filename} />
