@@ -87,8 +87,15 @@ const InfoCardContent = ({ variant }: { variant: InfoVariant }) => {
             <span className="cost-highlight__arrow" aria-hidden="true" />
             <p>FREE!!</p>
           </div>
-          <p className="info-card__label info-card__label--inline">Website</p>
-          <p>&rarr; Posted today via Instagram!!</p>
+          <p className="info-card__label info-card__label--inline">Promo Video</p>
+          <div className="promo-video">
+            <iframe
+              src="https://player.vimeo.com/video/1147462161"
+              title="TEE-DS promo video"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         </section>
       </div>
     </>
