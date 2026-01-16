@@ -47,6 +47,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ ok: false, message: 'Method not allowed' })
   }
 
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !OTP_SALT) {
+    return res.status(500).json({
+      ok: false,
+      message: 'Missing server configuration (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OTP_SALT)',
+    })
+  }
+
   try {
     const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
     const payload = (rawBody ?? {}) as Payload
@@ -81,7 +88,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .select('user_id, will_attend, updated_at')
         .single()
 
-      if (error) throw error
+      if (error) {
+        return res.status(500).json({ ok: false, message: error.message })
+      }
       return res.status(200).json({ ok: true, rsvp: data })
     }
 
@@ -91,11 +100,16 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       .eq('user_id', claims.sub)
       .maybeSingle()
 
-    if (error) throw error
+    if (error) {
+      return res.status(500).json({ ok: false, message: error.message })
+    }
     return res.status(200).json({ ok: true, rsvp: data ?? null })
   } catch (error) {
     console.error('record-rsvp api error', error)
-    return res.status(500).json({ ok: false, message: 'Failed to process RSVP' })
+    return res.status(500).json({
+      ok: false,
+      message: error instanceof Error ? error.message : 'Failed to process RSVP',
+    })
   }
 }
 
