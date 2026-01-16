@@ -17,18 +17,6 @@ export const supabase = createClient(supabaseUrl, publicAnonKey, {
 
 export const functionsBaseUrl = `${supabaseUrl}/functions/v1`
 
-export async function invokeEdgeFunction<TResponse>(name: string, body: Record<string, unknown>): Promise<TResponse> {
-  const { data, error } = await supabase.functions.invoke<TResponse>(name, {
-    body,
-  })
-
-  if (error) {
-    throw new Error(error.message || `Edge function ${name} failed`)
-  }
-
-  return data as TResponse
-}
-
 export function getDesignPublicUrl(storagePath: string) {
   const { data } = supabase.storage.from('designs').getPublicUrl(storagePath)
   return data.publicUrl
@@ -43,26 +31,29 @@ export type LiveEventRsvp = {
 }
 
 export async function saveLiveEventRsvpViaEdge(token: string, willAttend: LiveEventRsvpValue): Promise<LiveEventRsvp> {
-  const response = await invokeEdgeFunction<{ ok: boolean; rsvp?: LiveEventRsvp; message?: string }>('record-rsvp', {
-    action: 'set',
-    token,
-    will_attend: willAttend,
+  const response = await fetch('/api/record-rsvp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'set', token, will_attend: willAttend }),
   })
 
-  if (!response.ok || !response.rsvp) {
-    throw new Error(response.message ?? 'Unable to save RSVP')
+  const payload = (await response.json()) as { ok: boolean; rsvp?: LiveEventRsvp; message?: string }
+  if (!payload.ok || !payload.rsvp) {
+    throw new Error(payload.message ?? 'Unable to save RSVP')
   }
-  return response.rsvp
+  return payload.rsvp
 }
 
 export async function getLiveEventRsvpViaEdge(token: string): Promise<LiveEventRsvp | null> {
-  const response = await invokeEdgeFunction<{ ok: boolean; rsvp?: LiveEventRsvp | null; message?: string }>('record-rsvp', {
-    action: 'get',
-    token,
+  const response = await fetch('/api/record-rsvp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'get', token }),
   })
 
-  if (!response.ok) {
-    throw new Error(response.message ?? 'Unable to load RSVP')
+  const payload = (await response.json()) as { ok: boolean; rsvp?: LiveEventRsvp | null; message?: string }
+  if (!payload.ok) {
+    throw new Error(payload.message ?? 'Unable to load RSVP')
   }
-  return response.rsvp ?? null
+  return payload.rsvp ?? null
 }
