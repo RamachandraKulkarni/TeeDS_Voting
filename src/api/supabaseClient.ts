@@ -45,3 +45,49 @@ export function getDesignPublicUrl(storagePath: string) {
   const { data } = supabase.storage.from('designs').getPublicUrl(storagePath)
   return data.publicUrl
 }
+
+export type LiveEventRsvpValue = 'yes' | 'no'
+
+export type LiveEventRsvp = {
+  user_id: string
+  will_attend: LiveEventRsvpValue
+  updated_at: string
+}
+
+export async function saveLiveEventRsvp(willAttend: LiveEventRsvpValue): Promise<LiveEventRsvp> {
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser()
+
+  if (sessionError) throw sessionError
+  if (!user) throw new Error('You must be signed in to RSVP')
+
+  const { data, error } = await supabase
+    .from('rsvps')
+    .upsert({ user_id: user.id, will_attend: willAttend }, { onConflict: 'user_id' })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as LiveEventRsvp
+}
+
+export async function getLiveEventRsvp(): Promise<LiveEventRsvp | null> {
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser()
+
+  if (sessionError) throw sessionError
+  if (!user) return null
+
+  const { data, error } = await supabase
+    .from('rsvps')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (error) throw error
+  return (data as LiveEventRsvp | null) ?? null
+}

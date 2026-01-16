@@ -27,6 +27,7 @@ Deno.serve(async (req: Request) => {
       { data: voteRows, error: votesError },
       { data: userRows, error: usersError },
       { data: contactRows, error: contactsError },
+      { data: rsvpRows, error: rsvpsError },
     ] = await Promise.all([
       supabase
         .from('designs')
@@ -41,10 +42,11 @@ Deno.serve(async (req: Request) => {
         .select('id, sender_name, sender_email, topic, message, created_at')
         .order('created_at', { ascending: false })
         .limit(50),
+      supabase.from('rsvps').select('will_attend'),
     ])
 
-    if (designsError || votesError || usersError || contactsError) {
-      throw designsError ?? votesError ?? usersError ?? contactsError
+    if (designsError || votesError || usersError || contactsError || rsvpsError) {
+      throw designsError ?? votesError ?? usersError ?? contactsError ?? rsvpsError
     }
 
     const totalsMap = new Map<string, { modality: string; designs: number; votes: number }>()
@@ -137,7 +139,17 @@ Deno.serve(async (req: Request) => {
       created_at: row.created_at,
     }))
 
-    return jsonResponse({ ok: true, totals, leaderboard, users, contacts })
+    const rsvpCounts = (rsvpRows ?? []).reduce(
+      (acc, row) => {
+        if (row.will_attend === 'yes') acc.yes += 1
+        else if (row.will_attend === 'no') acc.no += 1
+        acc.total += 1
+        return acc
+      },
+      { yes: 0, no: 0, total: 0 },
+    )
+
+    return jsonResponse({ ok: true, totals, leaderboard, users, contacts, rsvpCounts })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)

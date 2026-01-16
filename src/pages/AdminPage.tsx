@@ -26,6 +26,7 @@ type ContactMessage = {
 type AnalyticsResponse = {
   ok: boolean
   totals: Array<{ modality: string; designs: number; votes: number }>
+  rsvpCounts?: { yes: number; no: number; total: number }
   leaderboard: Array<{
     design_id: string
     filename: string
@@ -161,6 +162,13 @@ const AdminPage = () => {
         </div>
 
         <div className="stat-grid">
+          {analytics?.rsvpCounts && (
+            <div className="stat-card">
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>Live event RSVP</p>
+              <strong>{analytics.rsvpCounts.yes}</strong>
+              <small style={{ color: 'var(--muted)' }}>{analytics.rsvpCounts.no} not attending</small>
+            </div>
+          )}
           {analytics?.totals.map((row) => (
             <div key={row.modality} className="stat-card">
               <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{getModalityLabel(row.modality)}</p>

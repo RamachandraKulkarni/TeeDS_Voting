@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
 import DesignCard from '../components/DesignCard'
 import ArrowIcon from '../components/ArrowIcon'
-import { getDesignPublicUrl, supabase } from '../api/supabaseClient'
+import { getDesignPublicUrl, supabase, getLiveEventRsvp, saveLiveEventRsvp, type LiveEventRsvp } from '../api/supabaseClient'
 import { useSession } from '../session'
 import { MODALITIES, ModalityValue, getModalityLabel } from '../constants/modalities'
 
@@ -35,6 +35,9 @@ const VotePage = () => {
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [cardsPerView, setCardsPerView] = useState<number>(DEFAULT_CARDS_PER_VIEW)
   const [currentPage, setCurrentPage] = useState(0)
+  const [rsvp, setRsvp] = useState<LiveEventRsvp | null>(null)
+  const [rsvpLoading, setRsvpLoading] = useState(false)
+  const [rsvpError, setRsvpError] = useState<string | null>(null)
   const carouselRef = useRef<HTMLDivElement | null>(null)
 
   const fetchDesigns = useCallback(async () => {
@@ -99,6 +102,26 @@ const VotePage = () => {
   }, [fetchVotes])
 
   useEffect(() => {
+    const loadRsvp = async () => {
+      if (!session) {
+        setRsvp(null)
+        return
+      }
+      setRsvpLoading(true)
+      setRsvpError(null)
+      try {
+        const current = await getLiveEventRsvp()
+        setRsvp(current)
+      } catch (error) {
+        setRsvpError(error instanceof Error ? error.message : 'Unable to load RSVP')
+      } finally {
+        setRsvpLoading(false)
+      }
+    }
+    loadRsvp()
+  }, [session])
+
+  useEffect(() => {
     const interval = window.setInterval(() => setCurrentTime(Date.now()), 60 * 1000)
     return () => window.clearInterval(interval)
   }, [])
@@ -138,6 +161,26 @@ const VotePage = () => {
     }
     return chunks
   }, [cardsPerView, visibleDesigns])
+
+  const handleRsvp = useCallback(
+    async (willAttend: 'yes' | 'no') => {
+      if (!session) {
+        setRsvpError('Sign in to RSVP')
+        return
+      }
+      setRsvpLoading(true)
+      setRsvpError(null)
+      try {
+        const saved = await saveLiveEventRsvp(willAttend)
+        setRsvp(saved)
+      } catch (error) {
+        setRsvpError(error instanceof Error ? error.message : 'Unable to save RSVP')
+      } finally {
+        setRsvpLoading(false)
+      }
+    },
+    [session],
+  )
 
   const totalPages = pagedDesigns.length
 
@@ -242,6 +285,54 @@ const VotePage = () => {
   return (
     <section className="fade-in vote-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="panel">
+        {session && (
+          <div className="rsvp-banner">
+            <div>
+              <p className="eyebrow" style={{ margin: 0 }}>Live screenprinting · Jan 24</p>
+              <p style={{ margin: '0.35rem 0 0', fontWeight: 700 }}>
+                Will you attend the live screenprinting event on January 24?
+              </p>
+              {rsvp && (
+                <p style={{ margin: '0.25rem 0 0', color: 'var(--muted)', fontSize: '0.95rem' }}>
+                  You responded: <strong style={{ color: 'var(--text)' }}>{rsvp.will_attend === 'yes' ? 'Yes' : 'No'}</strong>
+                  {' · '}
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => setRsvp(null)}
+                    disabled={rsvpLoading}
+                    style={{ marginLeft: '0.25rem' }}
+                  >
+                    Change response
+                  </button>
+                </p>
+              )}
+              {rsvpError && (
+                <p className="notice error" style={{ marginTop: '0.5rem' }}>{rsvpError}</p>
+              )}
+            </div>
+            {!rsvp && (
+              <div className="rsvp-actions">
+                <button
+                  type="button"
+                  className="glow-button"
+                  onClick={() => handleRsvp('yes')}
+                  disabled={rsvpLoading}
+                >
+                  I’m attending
+                </button>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => handleRsvp('no')}
+                  disabled={rsvpLoading}
+                >
+                  I’m not attending
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
           <div>
             <p className="eyebrow">Live gallery · {modalityLabel}</p>

@@ -181,3 +181,29 @@ create policy votes_insert on public.votes
 
 comment on policy designs_insert on public.designs is 'Allow designers to upload their own work';
 comment on policy votes_insert on public.votes is 'Each voter may insert their own vote rows via cast_vote RPC';
+
+-- RSVP responses for live screenprinting event attendance
+create table if not exists public.rsvps (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  will_attend text not null check (will_attend in ('yes', 'no')),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.rsvps enable row level security;
+
+drop policy if exists rsvps_select_self on public.rsvps;
+drop policy if exists rsvps_select_service on public.rsvps;
+drop policy if exists rsvps_upsert on public.rsvps;
+
+create policy rsvps_select_self on public.rsvps
+  for select to authenticated
+  using (auth.uid() = user_id);
+
+create policy rsvps_select_service on public.rsvps
+  for select to service_role
+  using (true);
+
+create policy rsvps_upsert on public.rsvps
+  for all to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
