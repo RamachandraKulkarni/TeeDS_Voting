@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? ''
@@ -8,8 +7,6 @@ const OTP_SALT = process.env.OTP_SALT ?? SERVICE_ROLE_KEY
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 })
-
-const encoder = new TextEncoder()
 
 type Action = 'get' | 'set'
 
@@ -26,34 +23,44 @@ type TokenPayload = {
   exp: number
 }
 
-export default async function handler(req: NextRequest) {
+type ApiRequest = {
+  method?: string
+  body?: unknown
+}
+
+type ApiResponse = {
+  status: (code: number) => ApiResponse
+  json: (payload: Record<string, unknown>) => ApiResponse
+}
+
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method === 'OPTIONS') {
-    return withCors(NextResponse.json({ ok: true }))
+    return res.status(200).json({ ok: true })
   }
 
   if (req.method !== 'POST') {
-    return withCors(NextResponse.json({ ok: false, message: 'Method not allowed' }, { status: 405 }))
+    return res.status(405).json({ ok: false, message: 'Method not allowed' })
   }
 
   try {
-    const { action, token, will_attend } = (await req.json()) as Payload
+    const { action, token, will_attend } = (req.body ?? {}) as Payload
 
     if (!token) {
-      return withCors(NextResponse.json({ ok: false, message: 'Missing token' }, { status: 401 }))
+      return res.status(401).json({ ok: false, message: 'Missing token' })
     }
 
     const claims = await verifyToken(token)
     if (!claims) {
-      return withCors(NextResponse.json({ ok: false, message: 'Invalid token' }, { status: 401 }))
+      return res.status(401).json({ ok: false, message: 'Invalid token' })
     }
 
     if (claims.exp * 1000 < Date.now()) {
-      return withCors(NextResponse.json({ ok: false, message: 'Token expired' }, { status: 401 }))
+      return res.status(401).json({ ok: false, message: 'Token expired' })
     }
 
     if (action === 'set') {
       if (!will_attend || (will_attend !== 'yes' && will_attend !== 'no')) {
-        return withCors(NextResponse.json({ ok: false, message: 'will_attend required' }, { status: 400 }))
+        return res.status(400).json({ ok: false, message: 'will_attend required' })
       }
 
       const { data, error } = await supabase
@@ -63,7 +70,7 @@ export default async function handler(req: NextRequest) {
         .single()
 
       if (error) throw error
-      return withCors(NextResponse.json({ ok: true, rsvp: data }))
+      return res.status(200).json({ ok: true, rsvp: data })
     }
 
     const { data, error } = await supabase
@@ -73,10 +80,10 @@ export default async function handler(req: NextRequest) {
       .maybeSingle()
 
     if (error) throw error
-    return withCors(NextResponse.json({ ok: true, rsvp: data ?? null }))
+    return res.status(200).json({ ok: true, rsvp: data ?? null })
   } catch (error) {
     console.error('record-rsvp api error', error)
-    return withCors(NextResponse.json({ ok: false, message: 'Failed to process RSVP' }, { status: 500 }))
+    return res.status(500).json({ ok: false, message: 'Failed to process RSVP' })
   }
 }
 
@@ -84,8 +91,9 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
   const parts = token.split('.')
   if (parts.length !== 3) return null
   const [headerB64, bodyB64, sigB64] = parts
-  const headerJson = Buffer.from(headerB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
-  const bodyJson = Buffer.from(bodyB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+
+  const headerJson = decodeBase64UrlToString(headerB64)
+  const bodyJson = decodeBase64UrlToString(bodyB64)
 
   let header: { alg?: string; typ?: string }
   let body: TokenPayload
@@ -98,26 +106,36 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 
   if (header.alg !== 'HS256') return null
 
-  const key = await crypto.subtle.importKey('raw', encoder.encode(OTP_SALT), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-  const data = encoder.encode(`${headerB64}.${bodyB64}`)
-  const signature = await crypto.subtle.sign('HMAC', key, data)
-  const expectedSig = base64url(new Uint8Array(signature))
-  if (expectedSig !== sigB64) return null
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(OTP_SALT),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(`${headerB64}.${bodyB64}`),
+  )
+  const expectedSig = base64UrlFromBuffer(signature)
 
+  if (expectedSig !== sigB64) return null
   return body
 }
 
-function base64url(data: Uint8Array) {
-  return Buffer.from(data)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
+function decodeBase64UrlToString(input: string) {
+  const base64 = input.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(input.length / 4) * 4, '=')
+  const binary = atob(base64)
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
 }
 
-function withCors(res: NextResponse) {
-  res.headers.set('Access-Control-Allow-Origin', '*')
-  res.headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type')
-  res.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  return res
+function base64UrlFromBuffer(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte)
+  })
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
