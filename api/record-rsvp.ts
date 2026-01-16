@@ -43,7 +43,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   try {
-    const { action, token, will_attend } = (req.body ?? {}) as Payload
+    const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    const { action, token, will_attend } = (rawBody ?? {}) as Payload
 
     if (!token) {
       return res.status(401).json({ ok: false, message: 'Missing token' })
