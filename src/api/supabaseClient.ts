@@ -57,7 +57,10 @@ export type LiveEventRsvp = {
 export async function saveLiveEventRsvpViaEdge(token: string, willAttend: LiveEventRsvpValue): Promise<LiveEventRsvp> {
   const response = await fetch('/api/record-rsvp', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ action: 'set', token, will_attend: willAttend }),
   })
 
@@ -71,7 +74,10 @@ export async function saveLiveEventRsvpViaEdge(token: string, willAttend: LiveEv
 export async function getLiveEventRsvpViaEdge(token: string): Promise<LiveEventRsvp | null> {
   const response = await fetch('/api/record-rsvp', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ action: 'get', token }),
   })
 

@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 
+declare const process: {
+  env: Record<string, string | undefined>
+}
+
 const SUPABASE_URL = process.env.SUPABASE_URL ?? ''
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 const OTP_SALT = process.env.OTP_SALT ?? SERVICE_ROLE_KEY
@@ -26,6 +30,7 @@ type TokenPayload = {
 type ApiRequest = {
   method?: string
   body?: unknown
+  headers?: Record<string, string | string[] | undefined>
 }
 
 type ApiResponse = {
@@ -44,7 +49,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   try {
     const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-    const { action, token, will_attend } = (rawBody ?? {}) as Payload
+    const payload = (rawBody ?? {}) as Payload
+    const headerAuth = req.headers?.authorization
+    const bearerToken = typeof headerAuth === 'string' && headerAuth.startsWith('Bearer ')
+      ? headerAuth.slice('Bearer '.length)
+      : undefined
+    const token = payload.token ?? bearerToken
+    const { action, will_attend } = payload
 
     if (!token) {
       return res.status(401).json({ ok: false, message: 'Missing token' })
