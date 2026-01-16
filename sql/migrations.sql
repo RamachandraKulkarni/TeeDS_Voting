@@ -184,7 +184,7 @@ comment on policy votes_insert on public.votes is 'Each voter may insert their o
 
 -- RSVP responses for live screenprinting event attendance
 create table if not exists public.rsvps (
-  user_id uuid primary key references auth.users(id) on delete cascade,
+  user_id uuid primary key references public.users(id) on delete cascade,
   will_attend text not null check (will_attend in ('yes', 'no')),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -207,3 +207,13 @@ create policy rsvps_upsert on public.rsvps
   for all to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- Fix RSVP foreign key to custom users table (not auth.users)
+alter table public.rsvps
+  drop constraint if exists rsvps_user_id_fkey;
+
+alter table public.rsvps
+  add constraint rsvps_user_id_fkey
+  foreign key (user_id)
+  references public.users(id)
+  on delete cascade;
