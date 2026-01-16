@@ -17,28 +17,16 @@ export const supabase = createClient(supabaseUrl, publicAnonKey, {
 
 export const functionsBaseUrl = `${supabaseUrl}/functions/v1`
 
-export async function invokeEdgeFunction<TResponse>(
-  name: string,
-  body: Record<string, unknown>,
-  token?: string,
-): Promise<TResponse> {
-  const authToken = token ?? publicAnonKey
-  const response = await fetch(`${functionsBaseUrl}/${name}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: publicAnonKey,
-      Authorization: `Bearer ${authToken}`,
-    },
-    body: JSON.stringify(body),
+export async function invokeEdgeFunction<TResponse>(name: string, body: Record<string, unknown>): Promise<TResponse> {
+  const { data, error } = await supabase.functions.invoke<TResponse>(name, {
+    body,
   })
 
-  if (!response.ok) {
-    const errorPayload = await response.text()
-    throw new Error(errorPayload || `Edge function ${name} failed (${response.status})`)
+  if (error) {
+    throw new Error(error.message || `Edge function ${name} failed`)
   }
 
-  return (await response.json()) as TResponse
+  return data as TResponse
 }
 
 export function getDesignPublicUrl(storagePath: string) {
