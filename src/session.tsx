@@ -6,7 +6,6 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react'
-import { supabase } from './api/supabaseClient'
 
 export type Session = {
   token: string
@@ -58,15 +57,6 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       console.warn('Unable to persist session to localStorage', error)
     }
   }, [session])
-
-  useEffect(() => {
-    // Keep supabase auth header in sync with our custom session token
-    if (session?.token) {
-      supabase.auth.setAuth(session.token)
-    } else {
-      supabase.auth.setAuth('')
-    }
-  }, [session?.token])
 
   const setSession = (next: Session | null) => setSessionState(next)
   const clearSession = () => setSessionState(null)

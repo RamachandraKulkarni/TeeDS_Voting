@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
 import DesignCard from '../components/DesignCard'
 import ArrowIcon from '../components/ArrowIcon'
-import { getDesignPublicUrl, supabase, getLiveEventRsvp, saveLiveEventRsvp, type LiveEventRsvp } from '../api/supabaseClient'
+import {
+  getDesignPublicUrl,
+  supabase,
+  getLiveEventRsvpViaEdge,
+  saveLiveEventRsvpViaEdge,
+  type LiveEventRsvp,
+} from '../api/supabaseClient'
 import { useSession } from '../session'
 import { MODALITIES, ModalityValue, getModalityLabel } from '../constants/modalities'
 
@@ -110,7 +116,7 @@ const VotePage = () => {
       setRsvpLoading(true)
       setRsvpError(null)
       try {
-        const current = await getLiveEventRsvp()
+        const current = await getLiveEventRsvpViaEdge(session.token)
         setRsvp(current)
       } catch (error) {
         setRsvpError(error instanceof Error ? error.message : 'Unable to load RSVP')
@@ -171,7 +177,7 @@ const VotePage = () => {
       setRsvpLoading(true)
       setRsvpError(null)
       try {
-        const saved = await saveLiveEventRsvp(willAttend)
+        const saved = await saveLiveEventRsvpViaEdge(session.token, willAttend)
         setRsvp(saved)
       } catch (error) {
         setRsvpError(error instanceof Error ? error.message : 'Unable to save RSVP')

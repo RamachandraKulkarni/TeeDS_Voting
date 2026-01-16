@@ -54,40 +54,27 @@ export type LiveEventRsvp = {
   updated_at: string
 }
 
-export async function saveLiveEventRsvp(willAttend: LiveEventRsvpValue): Promise<LiveEventRsvp> {
-  const {
-    data: { user },
-    error: sessionError,
-  } = await supabase.auth.getUser()
+export async function saveLiveEventRsvpViaEdge(token: string, willAttend: LiveEventRsvpValue): Promise<LiveEventRsvp> {
+  const response = await invokeEdgeFunction<{ ok: boolean; rsvp?: LiveEventRsvp; message?: string }>('record-rsvp', {
+    action: 'set',
+    token,
+    will_attend: willAttend,
+  })
 
-  if (sessionError) throw sessionError
-  if (!user) throw new Error('You must be signed in to RSVP')
-
-  const { data, error } = await supabase
-    .from('rsvps')
-    .upsert({ user_id: user.id, will_attend: willAttend }, { onConflict: 'user_id' })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data as LiveEventRsvp
+  if (!response.ok || !response.rsvp) {
+    throw new Error(response.message ?? 'Unable to save RSVP')
+  }
+  return response.rsvp
 }
 
-export async function getLiveEventRsvp(): Promise<LiveEventRsvp | null> {
-  const {
-    data: { user },
-    error: sessionError,
-  } = await supabase.auth.getUser()
+export async function getLiveEventRsvpViaEdge(token: string): Promise<LiveEventRsvp | null> {
+  const response = await invokeEdgeFunction<{ ok: boolean; rsvp?: LiveEventRsvp | null; message?: string }>('record-rsvp', {
+    action: 'get',
+    token,
+  })
 
-  if (sessionError) throw sessionError
-  if (!user) return null
-
-  const { data, error } = await supabase
-    .from('rsvps')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (error) throw error
-  return (data as LiveEventRsvp | null) ?? null
+  if (!response.ok) {
+    throw new Error(response.message ?? 'Unable to load RSVP')
+  }
+  return response.rsvp ?? null
 }
