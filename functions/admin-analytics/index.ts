@@ -24,13 +24,6 @@ type DesignRow = {
   modality: string
   storage_path: string
   submitter_id: string | null
-  submitter: Array<{
-    id: string
-    email: string | null
-    full_name: string | null
-    asu_id: string | null
-    discipline: string | null
-  }>
 }
 
 Deno.serve(async (req: Request) => {
@@ -51,7 +44,7 @@ Deno.serve(async (req: Request) => {
     ] = await Promise.all([
       supabase
         .from('designs')
-        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality, storage_path, submitter_id, submitter:users!submitter_id(id, email, full_name, asu_id, discipline)'),
+        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality, storage_path, submitter_id'),
       supabase.from('votes').select('design_id, modality'),
       supabase
         .from('users')
@@ -99,7 +92,7 @@ Deno.serve(async (req: Request) => {
       }
     >()
     typedDesignRows.forEach((row) => {
-      const submitter = row.submitter?.[0] ?? null
+      const submitter = row.submitter_id ? usersById.get(row.submitter_id) ?? null : null
       designLookup.set(row.id, {
         filename: row.filename,
         artwork_name: row.artwork_name ?? null,
@@ -177,6 +170,16 @@ Deno.serve(async (req: Request) => {
       created_at: user.created_at,
     }))
 
+    const usersById = new Map(
+      users.map((user) => [user.id, {
+        id: user.id,
+        email: user.email ?? null,
+        full_name: user.full_name ?? null,
+        asu_id: user.asu_id ?? null,
+        discipline: user.discipline ?? null,
+      }]),
+    )
+
     const contacts = (contactRows ?? []).map((row) => ({
       id: row.id,
       sender_name: row.sender_name,
@@ -197,27 +200,27 @@ Deno.serve(async (req: Request) => {
     )
 
     const designs = typedDesignRows.map((row) => {
-      const submitter = row.submitter?.[0] ?? null
+      const submitter = row.submitter_id ? usersById.get(row.submitter_id) ?? null : null
       return {
-      id: row.id,
-      filename: row.filename,
-      artwork_name: row.artwork_name ?? null,
-      student_name: row.student_name ?? null,
-      major: row.major ?? null,
-      year_level: row.year_level ?? null,
-      asurite: row.asurite ?? null,
-      modality: row.modality,
-      storage_path: row.storage_path,
-      submitter_id: row.submitter_id ?? null,
-      submitter: submitter
-        ? {
-            id: submitter.id,
-            email: submitter.email ?? null,
-            full_name: submitter.full_name ?? null,
-            asu_id: submitter.asu_id ?? null,
-            discipline: submitter.discipline ?? null,
-          }
-        : null,
+        id: row.id,
+        filename: row.filename,
+        artwork_name: row.artwork_name ?? null,
+        student_name: row.student_name ?? null,
+        major: row.major ?? null,
+        year_level: row.year_level ?? null,
+        asurite: row.asurite ?? null,
+        modality: row.modality,
+        storage_path: row.storage_path,
+        submitter_id: row.submitter_id ?? null,
+        submitter: submitter
+          ? {
+              id: submitter.id,
+              email: submitter.email ?? null,
+              full_name: submitter.full_name ?? null,
+              asu_id: submitter.asu_id ?? null,
+              discipline: submitter.discipline ?? null,
+            }
+          : null,
       }
     })
 

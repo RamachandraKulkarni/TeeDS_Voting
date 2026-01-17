@@ -252,48 +252,6 @@ const AdminPage = () => {
 
       {analytics && (
         <div className="panel">
-          <p className="eyebrow">Design submissions</p>
-          <h3 style={{ marginTop: 0 }}>Who submitted what</h3>
-          <p className="header-summary" style={{ marginBottom: '1rem' }}>
-            Visible only to admins. Shows the submitter details for each design.
-          </p>
-          {Object.keys(designsByModality).length === 0 ? (
-            <p className="notice">No designs loaded yet.</p>
-          ) : (
-            (Object.entries(designsByModality) as Array<[string, AdminDesign[]]>).map(([modality, designs]) => (
-              <div key={modality} style={{ marginBottom: '2rem' }}>
-                <h4 style={{ margin: '0 0 0.75rem' }}>{getModalityLabel(modality)}</h4>
-                <div className="design-grid">
-                  {designs.map((design) => (
-                    <div key={design.id} className="design-card">
-                      <div className="design-media">
-                        <img
-                          src={getDesignPublicUrl(design.storage_path)}
-                          alt={design.artwork_name ?? design.filename}
-                        />
-                      </div>
-                      <h4 style={{ margin: 0 }}>{design.artwork_name ?? design.filename}</h4>
-                      <p style={{ margin: 0, color: 'var(--muted)' }}>{getModalityLabel(design.modality)}</p>
-                      <div style={{ marginTop: '0.35rem' }}>
-                        <strong style={{ display: 'block' }}>{design.submitter?.full_name ?? 'Unknown submitter'}</strong>
-                        <small style={{ color: 'var(--muted)' }}>{design.submitter?.email ?? 'No email on file'}</small>
-                        {(() => {
-                          const line = [design.submitter?.discipline, design.submitter?.asu_id].filter(Boolean).join(' · ')
-                          if (!line) return null
-                          return <div style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{line}</div>
-                        })()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {analytics && (
-        <div className="panel">
           <p className="eyebrow">Leaderboard</p>
           <h3 style={{ marginTop: 0 }}>Top votes by modality</h3>
           <div className="leaderboard-grid">
@@ -354,6 +312,48 @@ const AdminPage = () => {
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      )}
+
+      {analytics && (
+        <div className="panel">
+          <p className="eyebrow">Design submissions</p>
+          <h3 style={{ marginTop: 0 }}>Who submitted what</h3>
+          <p className="header-summary" style={{ marginBottom: '1rem' }}>
+            Visible only to admins. Shows the submitter details for each design.
+          </p>
+          {Object.keys(designsByModality).length === 0 ? (
+            <p className="notice">No designs loaded yet.</p>
+          ) : (
+            (Object.entries(designsByModality) as Array<[string, AdminDesign[]]>).map(([modality, designs]) => (
+              <div key={modality} style={{ marginBottom: '2rem' }}>
+                <h4 style={{ margin: '0 0 0.75rem' }}>{getModalityLabel(modality)}</h4>
+                <div className="design-grid">
+                  {designs.map((design) => (
+                    <div key={design.id} className="design-card">
+                      <div className="design-media">
+                        <img
+                          src={getDesignPublicUrl(design.storage_path)}
+                          alt={design.artwork_name ?? design.filename}
+                        />
+                      </div>
+                      <h4 style={{ margin: 0 }}>{design.artwork_name ?? design.filename}</h4>
+                      <p style={{ margin: 0, color: 'var(--muted)' }}>{getModalityLabel(design.modality)}</p>
+                      <div style={{ marginTop: '0.35rem' }}>
+                        <strong style={{ display: 'block' }}>{design.submitter?.full_name ?? 'Unknown submitter'}</strong>
+                        <small style={{ color: 'var(--muted)' }}>{design.submitter?.email ?? 'No email on file'}</small>
+                        {(() => {
+                          const line = [design.submitter?.discipline, design.submitter?.asu_id].filter(Boolean).join(' · ')
+                          if (!line) return null
+                          return <div style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{line}</div>
+                        })()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}
