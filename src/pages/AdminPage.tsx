@@ -84,12 +84,14 @@ type AnalyticsResponse = {
 type AdminDesign = NonNullable<AnalyticsResponse['designs']>[number]
 
 const ALLOWED_ADMINS = ['rkulka43@asu.edu', 'arobin13@asu.edu']
+const DESIGN_PAGE_SIZE = 12
 
 const AdminPage = () => {
   const { session } = useSession()
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null)
   const [status, setStatus] = useState<string | null>(null)
   const [showUsersModal, setShowUsersModal] = useState(false)
+  const [designPage, setDesignPage] = useState(0)
 
   const adminEmail = session?.user.email?.toLowerCase() ?? ''
   const isAllowed = Boolean(adminEmail && ALLOWED_ADMINS.includes(adminEmail))
@@ -119,6 +121,10 @@ const AdminPage = () => {
 
     fetchAnalytics()
   }, [isAllowed])
+
+  useEffect(() => {
+    setDesignPage(0)
+  }, [analytics?.designs?.length])
 
   const chartData = useMemo(() => {
     if (!analytics) {
@@ -160,15 +166,26 @@ const AdminPage = () => {
     return grouped
   }, [analytics])
 
+  const designPages = useMemo(() => {
+    if (!analytics?.designs?.length) return [] as AdminDesign[][]
+    const pages: AdminDesign[][] = []
+    for (let index = 0; index < analytics.designs.length; index += DESIGN_PAGE_SIZE) {
+      pages.push(analytics.designs.slice(index, index + DESIGN_PAGE_SIZE))
+    }
+    return pages
+  }, [analytics?.designs])
+
+  const pagedDesigns = useMemo(() => designPages[designPage] ?? [], [designPages, designPage])
+
   const designsByModality = useMemo(() => {
-    if (!analytics?.designs) return {} as Record<string, AdminDesign[]>
-    return analytics.designs.reduce((acc, design) => {
+    if (pagedDesigns.length === 0) return {} as Record<string, AdminDesign[]>
+    return pagedDesigns.reduce((acc, design) => {
       const bucket = acc[design.modality] ?? []
       bucket.push(design)
       acc[design.modality] = bucket
       return acc
     }, {} as Record<string, AdminDesign[]>)
-  }, [analytics])
+  }, [pagedDesigns])
 
   if (!session) {
     return (
@@ -323,6 +340,39 @@ const AdminPage = () => {
           <p className="header-summary" style={{ marginBottom: '1rem' }}>
             Visible only to admins. Shows the submitter details for each design.
           </p>
+          {designPages.length > 1 && (
+            <div className="carousel-pagination" style={{ marginBottom: '1rem' }}>
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => setDesignPage((prev) => Math.max(prev - 1, 0))}
+                disabled={designPage === 0}
+              >
+                Previous
+              </button>
+              <div className="carousel-pagination__pages" role="tablist" aria-label="Design page selector">
+                {designPages.map((_, index) => (
+                  <button
+                    key={`design-page-${index}`}
+                    type="button"
+                    className={designPage === index ? 'active' : ''}
+                    onClick={() => setDesignPage(index)}
+                    aria-current={designPage === index ? 'true' : undefined}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => setDesignPage((prev) => Math.min(prev + 1, designPages.length - 1))}
+                disabled={designPage >= designPages.length - 1}
+              >
+                Next
+              </button>
+            </div>
+          )}
           {Object.keys(designsByModality).length === 0 ? (
             <p className="notice">No designs loaded yet.</p>
           ) : (
