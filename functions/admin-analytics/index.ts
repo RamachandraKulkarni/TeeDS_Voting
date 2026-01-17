@@ -70,6 +70,25 @@ Deno.serve(async (req: Request) => {
       totalsMap.set(row.modality, entry)
     })
 
+    const users = (userRows ?? []).map((user) => ({
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      asu_id: user.asu_id,
+      discipline: user.discipline,
+      created_at: user.created_at,
+    }))
+
+    const usersById = new Map(
+      users.map((user) => [user.id, {
+        id: user.id,
+        email: user.email ?? null,
+        full_name: user.full_name ?? null,
+        asu_id: user.asu_id ?? null,
+        discipline: user.discipline ?? null,
+      }]),
+    )
+
     const designLookup = new Map<
       string,
       {
@@ -160,25 +179,6 @@ Deno.serve(async (req: Request) => {
     const topDesign = leaderboardMap.size
       ? Array.from(leaderboardMap.values()).sort((a, b) => b.total_votes - a.total_votes)[0]
       : null
-
-    const users = (userRows ?? []).map((user) => ({
-      id: user.id,
-      email: user.email,
-      full_name: user.full_name,
-      asu_id: user.asu_id,
-      discipline: user.discipline,
-      created_at: user.created_at,
-    }))
-
-    const usersById = new Map(
-      users.map((user) => [user.id, {
-        id: user.id,
-        email: user.email ?? null,
-        full_name: user.full_name ?? null,
-        asu_id: user.asu_id ?? null,
-        discipline: user.discipline ?? null,
-      }]),
-    )
 
     const contacts = (contactRows ?? []).map((row) => ({
       id: row.id,
