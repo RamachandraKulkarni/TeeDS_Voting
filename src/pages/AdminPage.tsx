@@ -81,6 +81,8 @@ type AnalyticsResponse = {
   contacts: ContactMessage[]
 }
 
+type AdminDesign = NonNullable<AnalyticsResponse['designs']>[number]
+
 const ALLOWED_ADMINS = ['rkulka43@asu.edu', 'arobin13@asu.edu']
 
 const AdminPage = () => {
@@ -159,12 +161,13 @@ const AdminPage = () => {
   }, [analytics])
 
   const designsByModality = useMemo(() => {
-    if (!analytics?.designs) return {}
-    return analytics.designs.reduce<Record<string, NonNullable<AnalyticsResponse['designs']>>((acc, design) => {
-      acc[design.modality] = acc[design.modality] ?? []
-      acc[design.modality].push(design)
+    if (!analytics?.designs) return {} as Record<string, AdminDesign[]>
+    return analytics.designs.reduce((acc, design) => {
+      const bucket = acc[design.modality] ?? []
+      bucket.push(design)
+      acc[design.modality] = bucket
       return acc
-    }, {})
+    }, {} as Record<string, AdminDesign[]>)
   }, [analytics])
 
   if (!session) {
@@ -254,7 +257,7 @@ const AdminPage = () => {
           <p className="header-summary" style={{ marginBottom: '1rem' }}>
             Visible only to admins. Shows the submitter details for each design.
           </p>
-          {Object.entries(designsByModality).map(([modality, designs]) => (
+          {(Object.entries(designsByModality) as Array<[string, AdminDesign[]]>).map(([modality, designs]) => (
             <div key={modality} style={{ marginBottom: '2rem' }}>
               <h4 style={{ margin: '0 0 0.75rem' }}>{getModalityLabel(modality)}</h4>
               <div className="design-grid">
