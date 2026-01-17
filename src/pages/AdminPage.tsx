@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import { functionsBaseUrl, publicAnonKey } from '../api/supabaseClient'
+import { functionsBaseUrl, publicAnonKey, getDesignPublicUrl } from '../api/supabaseClient'
 import { useSession } from '../session'
 import { getModalityLabel } from '../constants/modalities'
 
@@ -36,7 +36,39 @@ type AnalyticsResponse = {
     year_level: string | null
     asurite: string | null
     modality: string
+    storage_path?: string
     total_votes: number
+  }>
+  topDesign?: {
+    design_id: string
+    filename: string
+    artwork_name: string | null
+    student_name: string | null
+    major: string | null
+    year_level: string | null
+    asurite: string | null
+    modality: string
+    storage_path?: string
+    total_votes: number
+  } | null
+  designs?: Array<{
+    id: string
+    filename: string
+    artwork_name: string | null
+    student_name: string | null
+    major: string | null
+    year_level: string | null
+    asurite: string | null
+    modality: string
+    storage_path: string
+    submitter_id: string | null
+    submitter: {
+      id: string
+      email: string | null
+      full_name: string | null
+      asu_id: string | null
+      discipline: string | null
+    } | null
   }>
   users: Array<{
     id: string
@@ -182,6 +214,62 @@ const AdminPage = () => {
           {chartData ? <Bar data={chartData} options={{ responsive: true, plugins: { legend: { labels: { color: '#f8fafc' } } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.15)' } } } }} /> : <p>Loading chart…</p>}
         </div>
       </div>
+
+      {analytics && (
+        <div className="panel">
+          <p className="eyebrow">Live leader</p>
+          <h3 style={{ marginTop: 0 }}>Top voted design</h3>
+          {analytics.topDesign ? (
+            <div className="design-card" style={{ maxWidth: '420px' }}>
+              <div className="design-media">
+                <img
+                  src={analytics.topDesign.storage_path ? getDesignPublicUrl(analytics.topDesign.storage_path) : ''}
+                  alt={analytics.topDesign.artwork_name ?? analytics.topDesign.filename}
+                />
+              </div>
+              <h4 style={{ margin: 0 }}>{analytics.topDesign.artwork_name ?? analytics.topDesign.filename}</h4>
+              <p style={{ margin: 0, color: 'var(--muted)' }}>
+                {getModalityLabel(analytics.topDesign.modality)} · {analytics.topDesign.total_votes} votes
+              </p>
+            </div>
+          ) : (
+            <p className="notice">No votes yet. Top design will appear after voting starts.</p>
+          )}
+        </div>
+      )}
+
+      {analytics?.designs && (
+        <div className="panel">
+          <p className="eyebrow">Design submissions</p>
+          <h3 style={{ marginTop: 0 }}>Who submitted what</h3>
+          <p className="header-summary" style={{ marginBottom: '1rem' }}>
+            Visible only to admins. Shows the submitter details for each design.
+          </p>
+          <div className="design-grid">
+            {analytics.designs.map((design) => (
+              <div key={design.id} className="design-card">
+                <div className="design-media">
+                  <img
+                    src={getDesignPublicUrl(design.storage_path)}
+                    alt={design.artwork_name ?? design.filename}
+                  />
+                </div>
+                <h4 style={{ margin: 0 }}>{design.artwork_name ?? design.filename}</h4>
+                <p style={{ margin: 0, color: 'var(--muted)' }}>{getModalityLabel(design.modality)}</p>
+                <div style={{ marginTop: '0.35rem' }}>
+                  <strong style={{ display: 'block' }}>{design.submitter?.full_name ?? 'Unknown submitter'}</strong>
+                  <small style={{ color: 'var(--muted)' }}>{design.submitter?.email ?? 'No email on file'}</small>
+                  {(() => {
+                    const line = [design.submitter?.discipline, design.submitter?.asu_id].filter(Boolean).join(' · ')
+                    if (!line) return null
+                    return <div style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{line}</div>
+                  })()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {analytics && (
         <div className="panel">

@@ -13,6 +13,26 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
 
+type DesignRow = {
+  id: string
+  filename: string
+  artwork_name: string | null
+  student_name: string | null
+  major: string | null
+  year_level: string | null
+  asurite: string | null
+  modality: string
+  storage_path: string
+  submitter_id: string | null
+  submitter: Array<{
+    id: string
+    email: string | null
+    full_name: string | null
+    asu_id: string | null
+    discipline: string | null
+  }>
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -31,7 +51,7 @@ Deno.serve(async (req: Request) => {
     ] = await Promise.all([
       supabase
         .from('designs')
-        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality'),
+        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality, storage_path, submitter_id, submitter:users!submitter_id(id, email, full_name, asu_id, discipline)'),
       supabase.from('votes').select('design_id, modality'),
       supabase
         .from('users')
@@ -50,7 +70,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const totalsMap = new Map<string, { modality: string; designs: number; votes: number }>()
-    designRows?.forEach((row) => {
+    const typedDesignRows = (designRows ?? []) as DesignRow[]
+    typedDesignRows.forEach((row) => {
       const entry = totalsMap.get(row.modality) ?? { modality: row.modality, designs: 0, votes: 0 }
       entry.designs += 1
       totalsMap.set(row.modality, entry)
@@ -66,9 +87,19 @@ Deno.serve(async (req: Request) => {
         year_level: string | null
         asurite: string | null
         modality: string
+        storage_path: string
+        submitter_id: string | null
+        submitter: {
+          id: string
+          email: string | null
+          full_name: string | null
+          asu_id: string | null
+          discipline: string | null
+        } | null
       }
     >()
-    designRows?.forEach((row) => {
+    typedDesignRows.forEach((row) => {
+      const submitter = row.submitter?.[0] ?? null
       designLookup.set(row.id, {
         filename: row.filename,
         artwork_name: row.artwork_name ?? null,
@@ -77,6 +108,17 @@ Deno.serve(async (req: Request) => {
         year_level: row.year_level ?? null,
         asurite: row.asurite ?? null,
         modality: row.modality,
+        storage_path: row.storage_path,
+        submitter_id: row.submitter_id ?? null,
+        submitter: submitter
+          ? {
+              id: submitter.id,
+              email: submitter.email ?? null,
+              full_name: submitter.full_name ?? null,
+              asu_id: submitter.asu_id ?? null,
+              discipline: submitter.discipline ?? null,
+            }
+          : null,
       })
     })
 
@@ -97,6 +139,7 @@ Deno.serve(async (req: Request) => {
         year_level: string | null
         asurite: string | null
         modality: string
+        storage_path: string
         total_votes: number
       }
     >()
@@ -112,6 +155,7 @@ Deno.serve(async (req: Request) => {
         year_level: meta.year_level,
         asurite: meta.asurite,
         modality: meta.modality,
+        storage_path: meta.storage_path,
         total_votes: 0,
       }
       entry.total_votes += 1
@@ -120,6 +164,9 @@ Deno.serve(async (req: Request) => {
 
     const totals = Array.from(totalsMap.values()).sort((a, b) => a.modality.localeCompare(b.modality))
     const leaderboard = Array.from(leaderboardMap.values()).sort((a, b) => b.total_votes - a.total_votes).slice(0, 5)
+    const topDesign = leaderboardMap.size
+      ? Array.from(leaderboardMap.values()).sort((a, b) => b.total_votes - a.total_votes)[0]
+      : null
 
     const users = (userRows ?? []).map((user) => ({
       id: user.id,
@@ -149,7 +196,32 @@ Deno.serve(async (req: Request) => {
       { yes: 0, no: 0, total: 0 },
     )
 
-    return jsonResponse({ ok: true, totals, leaderboard, users, contacts, rsvpCounts })
+    const designs = typedDesignRows.map((row) => {
+      const submitter = row.submitter?.[0] ?? null
+      return {
+      id: row.id,
+      filename: row.filename,
+      artwork_name: row.artwork_name ?? null,
+      student_name: row.student_name ?? null,
+      major: row.major ?? null,
+      year_level: row.year_level ?? null,
+      asurite: row.asurite ?? null,
+      modality: row.modality,
+      storage_path: row.storage_path,
+      submitter_id: row.submitter_id ?? null,
+      submitter: submitter
+        ? {
+            id: submitter.id,
+            email: submitter.email ?? null,
+            full_name: submitter.full_name ?? null,
+            asu_id: submitter.asu_id ?? null,
+            discipline: submitter.discipline ?? null,
+          }
+        : null,
+      }
+    })
+
+    return jsonResponse({ ok: true, totals, leaderboard, topDesign, designs, users, contacts, rsvpCounts })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)
