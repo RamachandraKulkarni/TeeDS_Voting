@@ -158,7 +158,7 @@ type TokenPayload = {
 
 async function createSessionToken(payload: TokenPayload) {
   const header = base64urlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 12
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365
   const body = base64urlEncode(JSON.stringify({ ...payload, exp }))
   const signature = await sign(`${header}.${body}`)
   return `${header}.${body}.${signature}`
