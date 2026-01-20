@@ -87,3 +87,14 @@ export async function getLiveEventRsvpViaEdge(token: string): Promise<LiveEventR
   }
   return payload.rsvp ?? null
 }
+
+export async function refreshSessionToken(token: string): Promise<string> {
+  const response = await invokeEdgeFunction<{ ok: boolean; token?: string; message?: string }>('refresh-token', {
+    token,
+  })
+
+  if (!response.ok || !response.token) {
+    throw new Error(response.message ?? 'Unable to refresh session')
+  }
+  return response.token
+}

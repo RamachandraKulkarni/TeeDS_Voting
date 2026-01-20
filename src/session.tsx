@@ -6,6 +6,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react'
+import { refreshSessionToken } from './api/supabaseClient'
 
 export type Session = {
   token: string
@@ -58,6 +59,24 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     }
   }, [session])
 
+  useEffect(() => {
+    if (!session?.token) return
+    const exp = getTokenExpiry(session.token)
+    if (!exp) return
+
+    const refreshDelay = Math.max(exp - Date.now() - 5 * 60 * 1000, 0)
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const nextToken = await refreshSessionToken(session.token)
+        setSessionState((prev) => (prev ? { ...prev, token: nextToken } : prev))
+      } catch (error) {
+        console.warn('Unable to refresh session token', error)
+      }
+    }, refreshDelay)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [session?.token])
+
   const setSession = (next: Session | null) => setSessionState(next)
   const clearSession = () => setSessionState(null)
 
@@ -80,4 +99,18 @@ export const useSession = () => {
     throw new Error('useSession must be used inside SessionProvider')
   }
   return context
+}
+
+function getTokenExpiry(token: string): number | null {
+  const parts = token.split('.')
+  if (parts.length !== 3) return null
+  try {
+    const body = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = body.padEnd(Math.ceil(body.length / 4) * 4, '=')
+    const json = atob(padded)
+    const payload = JSON.parse(json) as { exp?: number }
+    return payload.exp ? payload.exp * 1000 : null
+  } catch {
+    return null
+  }
 }
