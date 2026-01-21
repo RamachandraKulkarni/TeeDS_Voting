@@ -38,6 +38,7 @@ create table if not exists public.designs (
   major text,
   year_level text,
   asurite text,
+  is_flagged boolean default false,
   submitter_id uuid references public.users(id) on delete set null,
   submitter_hash text,
   submitted_at timestamptz default timezone('utc', now())
@@ -49,6 +50,7 @@ alter table public.designs add column if not exists artwork_name text;
 alter table public.designs add column if not exists major text;
 alter table public.designs add column if not exists year_level text;
 alter table public.designs add column if not exists asurite text;
+alter table public.designs add column if not exists is_flagged boolean default false;
 
 -- Votes table
 create table if not exists public.votes (
@@ -121,6 +123,10 @@ declare
   inserted public.votes;
   used integer;
 begin
+  if (exists(select 1 from public.designs where id = p_design_id and is_flagged = true)) then
+    raise exception 'Design has been flagged and cannot receive votes' using errcode = 'P0001';
+  end if;
+
   select coalesce(
       (select value::int from public.settings where key = limit_key),
       (select value::int from public.settings where key = 'votes_per_default'),

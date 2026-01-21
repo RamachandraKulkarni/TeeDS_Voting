@@ -17,6 +17,7 @@ type DesignRow = {
   artwork_name: string | null
   modality: ModalityValue
   storage_path: string
+  is_flagged: boolean | null
 }
 
 type SettingsRow = {
@@ -49,7 +50,7 @@ const VotePage = () => {
   const fetchDesigns = useCallback(async () => {
     const { data, error } = await supabase
       .from('designs')
-      .select('id, filename, artwork_name, modality, storage_path')
+      .select('id, filename, artwork_name, modality, storage_path, is_flagged')
       .order('submitted_at', { ascending: false })
 
     if (error) {
@@ -421,7 +422,9 @@ const VotePage = () => {
                       title={design.artwork_name ?? design.filename}
                       imageUrl={getDesignPublicUrl(design.storage_path)}
                       actionLabel={
-                        votingLocked
+                        design.is_flagged
+                          ? 'Flagged'
+                          : votingLocked
                           ? 'Voting locked'
                           : session
                             ? remainingVotes === 0
@@ -430,7 +433,7 @@ const VotePage = () => {
                             : 'Sign in to vote'
                       }
                       disabled={
-                        votingLocked || !session || remainingVotes === 0 || castingDesignId === design.id
+                        design.is_flagged || votingLocked || !session || remainingVotes === 0 || castingDesignId === design.id
                       }
                       onAction={() => handleVote(design.id, design.modality)}
                       onPreview={() => setPreviewDesign(design)}
@@ -503,7 +506,9 @@ const VotePage = () => {
                   onClick={() => {
                     handleVote(previewDesign.id, previewDesign.modality)
                   }}
-                  disabled={votingLocked || castingDesignId === previewDesign.id || remainingVotes === 0}
+                  disabled={
+                    previewDesign.is_flagged || votingLocked || castingDesignId === previewDesign.id || remainingVotes === 0
+                  }
                 >
                   <span className="pill-button__knob">
                     <ArrowIcon />

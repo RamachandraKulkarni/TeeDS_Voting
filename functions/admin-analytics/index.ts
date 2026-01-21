@@ -23,6 +23,7 @@ type DesignRow = {
   asurite: string | null
   modality: string
   storage_path: string
+  is_flagged: boolean | null
   submitter_id: string | null
 }
 
@@ -44,7 +45,7 @@ Deno.serve(async (req: Request) => {
     ] = await Promise.all([
       supabase
         .from('designs')
-        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality, storage_path, submitter_id'),
+        .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality, storage_path, is_flagged, submitter_id'),
       supabase.from('votes').select('design_id, modality'),
       supabase
         .from('users')
@@ -100,6 +101,7 @@ Deno.serve(async (req: Request) => {
         asurite: string | null
         modality: string
         storage_path: string
+        is_flagged: boolean
         submitter_id: string | null
         submitter: {
           id: string
@@ -121,6 +123,7 @@ Deno.serve(async (req: Request) => {
         asurite: row.asurite ?? null,
         modality: row.modality,
         storage_path: row.storage_path,
+        is_flagged: row.is_flagged ?? false,
         submitter_id: row.submitter_id ?? null,
         submitter: submitter
           ? {
@@ -158,6 +161,7 @@ Deno.serve(async (req: Request) => {
     voteRows?.forEach((vote) => {
       const meta = designLookup.get(vote.design_id)
       if (!meta) return
+      if (meta.is_flagged) return
       const entry = leaderboardMap.get(vote.design_id) ?? {
         design_id: vote.design_id,
         filename: meta.filename,
@@ -211,6 +215,7 @@ Deno.serve(async (req: Request) => {
         asurite: row.asurite ?? null,
         modality: row.modality,
         storage_path: row.storage_path,
+        is_flagged: row.is_flagged ?? false,
         submitter_id: row.submitter_id ?? null,
         submitter: submitter
           ? {

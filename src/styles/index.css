@@ -1070,6 +1070,19 @@ input::file-selector-button {
   max-width: 320px;
   margin-inline: auto;
 }
+
+.flag-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  background: rgba(248, 113, 113, 0.15);
+  color: #b91c1c;
+}
 .design-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 35px 75px rgba(15, 23, 42, 0.18);

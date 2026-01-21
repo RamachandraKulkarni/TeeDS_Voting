@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BarElement,
   CategoryScale,
@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import { functionsBaseUrl, publicAnonKey, getDesignPublicUrl } from '../api/supabaseClient'
+import { functionsBaseUrl, publicAnonKey, getDesignPublicUrl, invokeEdgeFunction } from '../api/supabaseClient'
 import { useSession } from '../session'
 import { getModalityLabel } from '../constants/modalities'
 
@@ -61,6 +61,7 @@ type AnalyticsResponse = {
     asurite: string | null
     modality: string
     storage_path: string
+    is_flagged: boolean
     submitter_id: string | null
     submitter: {
       id: string
@@ -92,39 +93,58 @@ const AdminPage = () => {
   const [status, setStatus] = useState<string | null>(null)
   const [showUsersModal, setShowUsersModal] = useState(false)
   const [designPage, setDesignPage] = useState(0)
+  const [flaggingId, setFlaggingId] = useState<string | null>(null)
 
   const adminEmail = session?.user.email?.toLowerCase() ?? ''
   const isAllowed = Boolean(adminEmail && ALLOWED_ADMINS.includes(adminEmail))
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      if (!isAllowed) return
-      try {
-        const response = await fetch(`${functionsBaseUrl}/admin-analytics`, {
-          headers: {
-            apikey: publicAnonKey,
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-        })
+  const fetchAnalytics = useCallback(async () => {
+    if (!isAllowed) return
+    try {
+      const response = await fetch(`${functionsBaseUrl}/admin-analytics`, {
+        headers: {
+          apikey: publicAnonKey,
+          Authorization: `Bearer ${publicAnonKey}`,
+        },
+      })
 
-        if (!response.ok) {
-          throw new Error('Unable to load analytics')
-        }
-
-        const payload = (await response.json()) as AnalyticsResponse
-        setAnalytics(payload)
-        setStatus(null)
-      } catch (error) {
-        setStatus(error instanceof Error ? error.message : 'Analytics request failed')
+      if (!response.ok) {
+        throw new Error('Unable to load analytics')
       }
-    }
 
-    fetchAnalytics()
+      const payload = (await response.json()) as AnalyticsResponse
+      setAnalytics(payload)
+      setStatus(null)
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Analytics request failed')
+    }
   }, [isAllowed])
+
+  useEffect(() => {
+    fetchAnalytics()
+  }, [fetchAnalytics])
 
   useEffect(() => {
     setDesignPage(0)
   }, [analytics?.designs?.length])
+
+  const handleFlagDesign = useCallback(
+    async (designId: string, nextFlag: boolean) => {
+      setFlaggingId(designId)
+      try {
+        await invokeEdgeFunction<{ ok: boolean; message?: string }>('flag-design', {
+          designId,
+          flag: nextFlag,
+        })
+        await fetchAnalytics()
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : 'Unable to update flag')
+      } finally {
+        setFlaggingId(null)
+      }
+    },
+    [fetchAnalytics],
+  )
 
   const chartData = useMemo(() => {
     if (!analytics) {
@@ -390,6 +410,7 @@ const AdminPage = () => {
                       </div>
                       <h4 style={{ margin: 0 }}>{design.artwork_name ?? design.filename}</h4>
                       <p style={{ margin: 0, color: 'var(--muted)' }}>{getModalityLabel(design.modality)}</p>
+                      {design.is_flagged && <span className="flag-badge">Flagged</span>}
                       <div style={{ marginTop: '0.35rem' }}>
                         <strong style={{ display: 'block' }}>{design.submitter?.full_name ?? 'Unknown submitter'}</strong>
                         <small style={{ color: 'var(--muted)' }}>{design.submitter?.email ?? 'No email on file'}</small>
@@ -399,6 +420,15 @@ const AdminPage = () => {
                           return <div style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{line}</div>
                         })()}
                       </div>
+                      <button
+                        type="button"
+                        className="ghost-button"
+                        onClick={() => handleFlagDesign(design.id, !design.is_flagged)}
+                        disabled={flaggingId === design.id}
+                        style={{ marginTop: '0.75rem' }}
+                      >
+                        {design.is_flagged ? 'Unflag design' : 'Flag design'}
+                      </button>
                     </div>
                   ))}
                 </div>
