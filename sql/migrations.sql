@@ -8,6 +8,7 @@ create table if not exists public.users (
   full_name text,
   asu_id text,
   discipline text,
+  is_faculty boolean default false,
   is_admin boolean default false,
   created_at timestamptz default timezone('utc', now())
 );
@@ -15,6 +16,7 @@ create table if not exists public.users (
 alter table public.users add column if not exists full_name text;
 alter table public.users add column if not exists asu_id text;
 alter table public.users add column if not exists discipline text;
+alter table public.users add column if not exists is_faculty boolean default false;
 
 -- OTP storage (hashed, expiring)
 create table if not exists public.otps (
@@ -71,6 +73,11 @@ create table if not exists public.settings (
 
 -- Admin emails live here for quick bootstrap
 create table if not exists public.admins (
+  email text primary key
+);
+
+-- Faculty allowlist: pre-approve faculty emails before first sign-in
+create table if not exists public.faculty_allowlist (
   email text primary key
 );
 

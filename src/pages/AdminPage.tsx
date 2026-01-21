@@ -51,6 +51,18 @@ type AnalyticsResponse = {
     storage_path?: string
     total_votes: number
   }>
+  facultyLeaderboard?: Array<{
+    design_id: string
+    filename: string
+    artwork_name: string | null
+    student_name: string | null
+    major: string | null
+    year_level: string | null
+    asurite: string | null
+    modality: string
+    storage_path?: string
+    total_votes: number
+  }>
   designs?: Array<{
     id: string
     filename: string
@@ -321,6 +333,33 @@ const AdminPage = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {analytics?.facultyLeaderboard && (
+        <div className="panel">
+          <p className="eyebrow">Faculty favourite</p>
+          <h3 style={{ marginTop: 0 }}>Top designs voted by faculty</h3>
+          {analytics.facultyLeaderboard.length === 0 ? (
+            <p className="notice">No faculty votes yet.</p>
+          ) : (
+            <div className="design-grid">
+              {analytics.facultyLeaderboard.map((design) => (
+                <div key={design.design_id} className="design-card" style={{ maxWidth: '420px' }}>
+                  <div className="design-media">
+                    <img
+                      src={design.storage_path ? getDesignPublicUrl(design.storage_path) : ''}
+                      alt={design.artwork_name ?? design.filename}
+                    />
+                  </div>
+                  <h4 style={{ margin: 0 }}>{design.artwork_name ?? design.filename}</h4>
+                  <p style={{ margin: 0, color: 'var(--muted)' }}>
+                    {getModalityLabel(design.modality)} · {design.total_votes} faculty votes
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

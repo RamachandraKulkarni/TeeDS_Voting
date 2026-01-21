@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
     let { data: user } = await supabase
       .from('users')
-      .select('id, email, is_admin, full_name, asu_id, discipline')
+      .select('id, email, is_admin, is_faculty, full_name, asu_id, discipline')
       .eq('email', normalizedEmail)
       .maybeSingle()
 
@@ -111,9 +111,20 @@ Deno.serve(async (req) => {
       .eq('email', normalizedEmail)
       .maybeSingle()
 
+    const { data: facultyRecord } = await supabase
+      .from('faculty_allowlist')
+      .select('email')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+
     const isAdmin = adminRecord !== null || user.is_admin === true
     if (isAdmin && user.is_admin !== true) {
       await supabase.from('users').update({ is_admin: true }).eq('id', user.id)
+    }
+
+    const isFaculty = facultyRecord !== null || user.is_faculty === true
+    if (isFaculty && user.is_faculty !== true) {
+      await supabase.from('users').update({ is_faculty: true }).eq('id', user.id)
     }
 
     const session = await createSessionToken({

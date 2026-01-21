@@ -46,10 +46,10 @@ Deno.serve(async (req: Request) => {
       supabase
         .from('designs')
         .select('id, filename, artwork_name, student_name, major, year_level, asurite, modality, storage_path, is_flagged, submitter_id'),
-      supabase.from('votes').select('design_id, modality'),
+      supabase.from('votes').select('design_id, modality, voter_id'),
       supabase
         .from('users')
-        .select('id, email, full_name, asu_id, discipline, created_at')
+        .select('id, email, full_name, asu_id, discipline, is_faculty, created_at')
         .order('created_at', { ascending: false }),
       supabase
         .from('contact_messages')
@@ -77,6 +77,7 @@ Deno.serve(async (req: Request) => {
       full_name: user.full_name,
       asu_id: user.asu_id,
       discipline: user.discipline,
+      is_faculty: user.is_faculty ?? false,
       created_at: user.created_at,
     }))
 
@@ -191,6 +192,33 @@ Deno.serve(async (req: Request) => {
       {},
     )
 
+    const facultyIds = new Set(users.filter((user) => user.is_faculty).map((user) => user.id))
+    const facultyCounts = new Map<string, number>()
+    voteRows?.forEach((vote) => {
+      if (!facultyIds.has(vote.voter_id)) return
+      facultyCounts.set(vote.design_id, (facultyCounts.get(vote.design_id) ?? 0) + 1)
+    })
+
+    const facultyLeaderboard = Array.from(facultyCounts.entries())
+      .map(([designId, count]) => {
+        const meta = designLookup.get(designId)
+        if (!meta || meta.is_flagged) return null
+        return {
+          design_id: designId,
+          filename: meta.filename,
+          artwork_name: meta.artwork_name,
+          student_name: meta.student_name,
+          major: meta.major,
+          year_level: meta.year_level,
+          asurite: meta.asurite,
+          modality: meta.modality,
+          storage_path: meta.storage_path,
+          total_votes: count,
+        }
+      })
+      .filter((row): row is NonNullable<typeof row> => Boolean(row))
+      .sort((a, b) => b.total_votes - a.total_votes)
+
     const contacts = (contactRows ?? []).map((row) => ({
       id: row.id,
       sender_name: row.sender_name,
@@ -236,7 +264,7 @@ Deno.serve(async (req: Request) => {
       }
     })
 
-    return jsonResponse({ ok: true, totals, leaderboard, topByModality, designs, users, contacts, rsvpCounts })
+    return jsonResponse({ ok: true, totals, leaderboard, topByModality, facultyLeaderboard, designs, users, contacts, rsvpCounts })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)

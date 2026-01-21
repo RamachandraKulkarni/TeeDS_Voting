@@ -422,9 +422,7 @@ const VotePage = () => {
                       title={design.artwork_name ?? design.filename}
                       imageUrl={getDesignPublicUrl(design.storage_path)}
                       actionLabel={
-                        design.is_flagged
-                          ? 'Flagged'
-                          : votingLocked
+                        votingLocked
                           ? 'Voting locked'
                           : session
                             ? remainingVotes === 0
