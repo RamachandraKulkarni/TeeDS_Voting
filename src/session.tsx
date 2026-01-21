@@ -64,16 +64,24 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     const exp = getTokenExpiry(session.token)
     if (!exp) return
 
-    const refreshDelay = Math.max(exp - Date.now() - 5 * 60 * 1000, 0)
-    const timeoutId = window.setTimeout(async () => {
+    const now = Date.now()
+    const refreshDelay = Math.max(exp - now - 5 * 60 * 1000, 0)
+
+    const refresh = async () => {
       try {
         const nextToken = await refreshSessionToken(session.token)
         setSessionState((prev) => (prev ? { ...prev, token: nextToken } : prev))
       } catch (error) {
         console.warn('Unable to refresh session token', error)
       }
-    }, refreshDelay)
+    }
 
+    if (exp <= now) {
+      void refresh()
+      return
+    }
+
+    const timeoutId = window.setTimeout(refresh, refreshDelay)
     return () => window.clearTimeout(timeoutId)
   }, [session?.token])
 

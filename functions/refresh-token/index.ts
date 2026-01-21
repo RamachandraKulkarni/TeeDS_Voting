@@ -41,11 +41,6 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: false, message: 'Invalid token' }, 401)
     }
 
-    const now = Date.now()
-    if (claims.exp * 1000 < now) {
-      return jsonResponse({ ok: false, message: 'Token expired' }, 401)
-    }
-
     const refreshed = await createSessionToken({
       sub: claims.sub,
       email: claims.email,
