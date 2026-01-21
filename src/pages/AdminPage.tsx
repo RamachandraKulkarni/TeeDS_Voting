@@ -39,7 +39,7 @@ type AnalyticsResponse = {
     storage_path?: string
     total_votes: number
   }>
-  topDesign?: {
+  topByModality?: Record<string, {
     design_id: string
     filename: string
     artwork_name: string | null
@@ -50,7 +50,7 @@ type AnalyticsResponse = {
     modality: string
     storage_path?: string
     total_votes: number
-  } | null
+  }>
   designs?: Array<{
     id: string
     filename: string
@@ -267,19 +267,23 @@ const AdminPage = () => {
       {analytics && (
         <div className="panel">
           <p className="eyebrow">Live leader</p>
-          <h3 style={{ marginTop: 0 }}>Top voted design</h3>
-          {analytics.topDesign ? (
-            <div className="design-card" style={{ maxWidth: '420px' }}>
-              <div className="design-media">
-                <img
-                  src={analytics.topDesign.storage_path ? getDesignPublicUrl(analytics.topDesign.storage_path) : ''}
-                  alt={analytics.topDesign.artwork_name ?? analytics.topDesign.filename}
-                />
-              </div>
-              <h4 style={{ margin: 0 }}>{analytics.topDesign.artwork_name ?? analytics.topDesign.filename}</h4>
-              <p style={{ margin: 0, color: 'var(--muted)' }}>
-                {getModalityLabel(analytics.topDesign.modality)} · {analytics.topDesign.total_votes} votes
-              </p>
+          <h3 style={{ marginTop: 0 }}>Top voted design by modality</h3>
+          {analytics.topByModality && Object.keys(analytics.topByModality).length > 0 ? (
+            <div className="design-grid">
+              {Object.entries(analytics.topByModality).map(([modality, design]) => (
+                <div key={modality} className="design-card" style={{ maxWidth: '420px' }}>
+                  <div className="design-media">
+                    <img
+                      src={design.storage_path ? getDesignPublicUrl(design.storage_path) : ''}
+                      alt={design.artwork_name ?? design.filename}
+                    />
+                  </div>
+                  <h4 style={{ margin: 0 }}>{design.artwork_name ?? design.filename}</h4>
+                  <p style={{ margin: 0, color: 'var(--muted)' }}>
+                    {getModalityLabel(modality)} · {design.total_votes} votes
+                  </p>
+                </div>
+              ))}
             </div>
           ) : (
             <p className="notice">No votes yet. Top design will appear after voting starts.</p>

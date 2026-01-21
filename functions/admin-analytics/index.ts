@@ -180,9 +180,16 @@ Deno.serve(async (req: Request) => {
 
     const totals = Array.from(totalsMap.values()).sort((a, b) => a.modality.localeCompare(b.modality))
     const leaderboard = Array.from(leaderboardMap.values()).sort((a, b) => b.total_votes - a.total_votes).slice(0, 5)
-    const topDesign = leaderboardMap.size
-      ? Array.from(leaderboardMap.values()).sort((a, b) => b.total_votes - a.total_votes)[0]
-      : null
+    const topByModality = Array.from(leaderboardMap.values()).reduce<Record<string, typeof leaderboard[number]>>(
+      (acc, entry) => {
+        const current = acc[entry.modality]
+        if (!current || entry.total_votes > current.total_votes) {
+          acc[entry.modality] = entry
+        }
+        return acc
+      },
+      {},
+    )
 
     const contacts = (contactRows ?? []).map((row) => ({
       id: row.id,
@@ -229,7 +236,7 @@ Deno.serve(async (req: Request) => {
       }
     })
 
-    return jsonResponse({ ok: true, totals, leaderboard, topDesign, designs, users, contacts, rsvpCounts })
+    return jsonResponse({ ok: true, totals, leaderboard, topByModality, designs, users, contacts, rsvpCounts })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)
