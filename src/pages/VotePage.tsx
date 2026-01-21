@@ -298,6 +298,9 @@ const VotePage = () => {
               <p style={{ margin: '0.35rem 0 0', fontWeight: 700 }}>
                 Will you attend the live screenprinting event on January 24?
               </p>
+              <p style={{ margin: '0.35rem 0 0', color: 'var(--muted)' }}>
+                $10 = T-shirt and Screen printing lesson + Pizza!! RSVP
+              </p>
               {rsvp && (
                 <p style={{ margin: '0.25rem 0 0', color: 'var(--muted)', fontSize: '0.95rem' }}>
                   You responded: <strong style={{ color: 'var(--text)' }}>{rsvp.will_attend === 'yes' ? 'Yes' : 'No'}</strong>
