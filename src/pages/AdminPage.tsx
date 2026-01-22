@@ -27,6 +27,16 @@ type AnalyticsResponse = {
   ok: boolean
   totals: Array<{ modality: string; designs: number; votes: number }>
   rsvpCounts?: { yes: number; no: number; total: number }
+  facultyCount?: number
+  designVoteBreakdown?: Array<{
+    design_id: string
+    title: string
+    modality: string
+    total_votes: number
+    faculty_votes: number
+    faculty_voters: Array<{ id: string; name: string; email: string }>
+    voters: Array<{ id: string; name: string; email: string; is_faculty: boolean }>
+  }>
   leaderboard: Array<{
     design_id: string
     filename: string
@@ -262,6 +272,13 @@ const AdminPage = () => {
               <small style={{ color: 'var(--muted)' }}>{analytics.rsvpCounts.no} not attending</small>
             </div>
           )}
+          {typeof analytics?.facultyCount === 'number' && (
+            <div className="stat-card">
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>Faculty signed in</p>
+              <strong>{analytics.facultyCount}</strong>
+              <small style={{ color: 'var(--muted)' }}>Verified faculty accounts</small>
+            </div>
+          )}
           {analytics?.totals.map((row) => (
             <div key={row.modality} className="stat-card">
               <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{getModalityLabel(row.modality)}</p>
@@ -356,6 +373,43 @@ const AdminPage = () => {
                   <p style={{ margin: 0, color: 'var(--muted)' }}>
                     {getModalityLabel(design.modality)} · {design.total_votes} faculty votes
                   </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {analytics?.designVoteBreakdown && (
+        <div className="panel">
+          <p className="eyebrow">Vote audit</p>
+          <h3 style={{ marginTop: 0 }}>Current votes by design</h3>
+          <p className="header-summary" style={{ marginBottom: '1rem' }}>
+            Admin-only rollup of total votes and voter names per design.
+          </p>
+          {analytics.designVoteBreakdown.length === 0 ? (
+            <p className="notice">No votes recorded yet.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {analytics.designVoteBreakdown.map((entry) => (
+                <div key={entry.design_id} className="leaderboard-card" style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div>
+                      <strong style={{ display: 'block' }}>{entry.title}</strong>
+                      <small style={{ color: 'var(--muted)' }}>{getModalityLabel(entry.modality)}</small>
+                    </div>
+                    <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
+                      {entry.total_votes} total votes · {entry.faculty_votes} faculty votes
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '0.75rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                    <strong style={{ color: 'var(--text)', fontWeight: 600 }}>All voters:</strong>{' '}
+                    {entry.voters.length === 0 ? 'None yet' : entry.voters.map((voter) => voter.name).join(', ')}
+                  </div>
+                  <div style={{ marginTop: '0.35rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                    <strong style={{ color: 'var(--text)', fontWeight: 600 }}>Faculty voters:</strong>{' '}
+                    {entry.faculty_voters.length === 0 ? 'None yet' : entry.faculty_voters.map((voter) => voter.name).join(', ')}
+                  </div>
                 </div>
               ))}
             </div>

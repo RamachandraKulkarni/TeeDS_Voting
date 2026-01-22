@@ -88,6 +88,7 @@ Deno.serve(async (req: Request) => {
         full_name: user.full_name ?? null,
         asu_id: user.asu_id ?? null,
         discipline: user.discipline ?? null,
+        is_faculty: user.is_faculty ?? false,
       }]),
     )
 
@@ -138,10 +139,40 @@ Deno.serve(async (req: Request) => {
       })
     })
 
+    const voteCounts = new Map<string, number>()
+    const votersByDesign = new Map<string, Array<{ id: string; name: string; email: string; is_faculty: boolean }>>()
+    const facultyVotesByDesign = new Map<string, Array<{ id: string; name: string; email: string }>>()
     voteRows?.forEach((vote) => {
       const entry = totalsMap.get(vote.modality) ?? { modality: vote.modality, designs: 0, votes: 0 }
       entry.votes += 1
       totalsMap.set(vote.modality, entry)
+
+      voteCounts.set(vote.design_id, (voteCounts.get(vote.design_id) ?? 0) + 1)
+
+      const voter = usersById.get(vote.voter_id)
+      if (!voter) return
+
+      const voterList = votersByDesign.get(vote.design_id) ?? []
+      if (!voterList.find((entry) => entry.id === voter.id)) {
+        voterList.push({
+          id: voter.id,
+          name: voter.full_name ?? voter.email ?? 'Unknown voter',
+          email: voter.email ?? 'unknown',
+          is_faculty: voter.is_faculty ?? false,
+        })
+      }
+      votersByDesign.set(vote.design_id, voterList)
+
+      if (!voter.is_faculty) return
+      const list = facultyVotesByDesign.get(vote.design_id) ?? []
+      if (!list.find((entry) => entry.id === voter.id)) {
+        list.push({
+          id: voter.id,
+          name: voter.full_name ?? voter.email ?? 'Unknown faculty',
+          email: voter.email ?? 'unknown',
+        })
+      }
+      facultyVotesByDesign.set(vote.design_id, list)
     })
 
     const leaderboardMap = new Map<
@@ -192,7 +223,8 @@ Deno.serve(async (req: Request) => {
       {},
     )
 
-    const facultyIds = new Set(users.filter((user) => user.is_faculty).map((user) => user.id))
+    const facultyUsers = users.filter((user) => user.is_faculty)
+    const facultyIds = new Set(facultyUsers.map((user) => user.id))
     const facultyCounts = new Map<string, number>()
     voteRows?.forEach((vote) => {
       if (!facultyIds.has(vote.voter_id)) return
@@ -238,6 +270,23 @@ Deno.serve(async (req: Request) => {
       { yes: 0, no: 0, total: 0 },
     )
 
+    const designVoteBreakdown = typedDesignRows
+      .map((row) => {
+        const title = row.artwork_name ?? row.filename
+        const facultyVoters = facultyVotesByDesign.get(row.id) ?? []
+        const voters = votersByDesign.get(row.id) ?? []
+        return {
+          design_id: row.id,
+          title,
+          modality: row.modality,
+          total_votes: voteCounts.get(row.id) ?? 0,
+          faculty_votes: facultyVoters.length,
+          faculty_voters: facultyVoters,
+          voters,
+        }
+      })
+      .sort((a, b) => b.total_votes - a.total_votes)
+
     const designs = typedDesignRows.map((row) => {
       const submitter = row.submitter_id ? usersById.get(row.submitter_id) ?? null : null
       return {
@@ -264,7 +313,19 @@ Deno.serve(async (req: Request) => {
       }
     })
 
-    return jsonResponse({ ok: true, totals, leaderboard, topByModality, facultyLeaderboard, designs, users, contacts, rsvpCounts })
+    return jsonResponse({
+      ok: true,
+      totals,
+      leaderboard,
+      topByModality,
+      facultyLeaderboard,
+      facultyCount: facultyUsers.length,
+      designVoteBreakdown,
+      designs,
+      users,
+      contacts,
+      rsvpCounts,
+    })
   } catch (error) {
     console.error('admin-analytics error', error)
     return jsonResponse({ ok: false, message: 'Failed to load analytics' }, 500)
