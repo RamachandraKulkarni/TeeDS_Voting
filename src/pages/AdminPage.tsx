@@ -116,6 +116,7 @@ const AdminPage = () => {
   const [showUsersModal, setShowUsersModal] = useState(false)
   const [designPage, setDesignPage] = useState(0)
   const [flaggingId, setFlaggingId] = useState<string | null>(null)
+  const [showVoteAudit, setShowVoteAudit] = useState(false)
 
   const adminEmail = session?.user.email?.toLowerCase() ?? ''
   const isAllowed = Boolean(adminEmail && ALLOWED_ADMINS.includes(adminEmail))
@@ -383,36 +384,48 @@ const AdminPage = () => {
       {analytics?.designVoteBreakdown && (
         <div className="panel">
           <p className="eyebrow">Vote audit</p>
-          <h3 style={{ marginTop: 0 }}>Current votes by design</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <h3 style={{ margin: 0 }}>Current votes by design</h3>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => setShowVoteAudit((prev) => !prev)}
+              aria-expanded={showVoteAudit}
+            >
+              {showVoteAudit ? 'Collapse' : 'Expand'}
+            </button>
+          </div>
           <p className="header-summary" style={{ marginBottom: '1rem' }}>
             Admin-only rollup of total votes and voter names per design.
           </p>
-          {analytics.designVoteBreakdown.length === 0 ? (
-            <p className="notice">No votes recorded yet.</p>
-          ) : (
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {analytics.designVoteBreakdown.map((entry) => (
-                <div key={entry.design_id} className="leaderboard-card" style={{ padding: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div>
-                      <strong style={{ display: 'block' }}>{entry.title}</strong>
-                      <small style={{ color: 'var(--muted)' }}>{getModalityLabel(entry.modality)}</small>
+          {showVoteAudit && (
+            analytics.designVoteBreakdown.length === 0 ? (
+              <p className="notice">No votes recorded yet.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {analytics.designVoteBreakdown.map((entry) => (
+                  <div key={entry.design_id} className="leaderboard-card" style={{ padding: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div>
+                        <strong style={{ display: 'block' }}>{entry.title}</strong>
+                        <small style={{ color: 'var(--muted)' }}>{getModalityLabel(entry.modality)}</small>
+                      </div>
+                      <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
+                        {entry.total_votes} total votes · {entry.faculty_votes} faculty votes
+                      </div>
                     </div>
-                    <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
-                      {entry.total_votes} total votes · {entry.faculty_votes} faculty votes
+                    <div style={{ marginTop: '0.75rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                      <strong style={{ color: 'var(--text)', fontWeight: 600 }}>All voters:</strong>{' '}
+                      {entry.voters.length === 0 ? 'None yet' : entry.voters.map((voter) => voter.name).join(', ')}
+                    </div>
+                    <div style={{ marginTop: '0.35rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                      <strong style={{ color: 'var(--text)', fontWeight: 600 }}>Faculty voters:</strong>{' '}
+                      {entry.faculty_voters.length === 0 ? 'None yet' : entry.faculty_voters.map((voter) => voter.name).join(', ')}
                     </div>
                   </div>
-                  <div style={{ marginTop: '0.75rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
-                    <strong style={{ color: 'var(--text)', fontWeight: 600 }}>All voters:</strong>{' '}
-                    {entry.voters.length === 0 ? 'None yet' : entry.voters.map((voter) => voter.name).join(', ')}
-                  </div>
-                  <div style={{ marginTop: '0.35rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
-                    <strong style={{ color: 'var(--text)', fontWeight: 600 }}>Faculty voters:</strong>{' '}
-                    {entry.faculty_voters.length === 0 ? 'None yet' : entry.faculty_voters.map((voter) => voter.name).join(', ')}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       )}
